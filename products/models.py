@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+
 # import uuid
 
 # # Create your models here.
@@ -56,9 +58,13 @@ from django.db import models
 
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=25)
 
+    def __str__(self):
+        return self.name
 
-class Produc(models.Model):
+class Product(models.Model):
 
     product_name = models.CharField(max_length=100)
     price = models.FloatField()
@@ -69,4 +75,9 @@ class Produc(models.Model):
 
     discount_price = models.PositiveIntegerField(blank=True,null=True)
     quantity = models.CharField(max_length= 100, null =True, blank=True)
+    created_at = models.DateField(default=timezone.now)
 
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
