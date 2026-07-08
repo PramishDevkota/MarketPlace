@@ -77,7 +77,7 @@ class Product(models.Model):
     quantity = models.CharField(max_length= 100, null =True, blank=True)
     created_at = models.DateField(default=timezone.now)
 
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, default=0)
 
     def __str__(self):
-        return self.name
+        return self.product_name
