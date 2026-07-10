@@ -1,6 +1,22 @@
- {% extends 'master/base.html' %}
- {% block title%} Home  {% endblock %}
- {% block content %}
- <p> This is the homepage </p>
+{% extends 'master/base.html' %}
 
- {%endblock%}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Our Products</h2>
+
+{% for product in products %}
+    <div class="product">
+        <a href = "{% url 'product_detail' product.id %}">
+            {{ product.name}}
+        </a>
+
+
+        <p>Price: Rs. {{ product.price }}</p>
+
+    </div>
+{% empty %}
+    <p>No products available.</p>
+{% endfor %}
+
+{% endblock %}
