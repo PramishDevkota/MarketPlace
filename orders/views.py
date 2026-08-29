@@ -64,7 +64,7 @@ def order_checkout_view(request, pk):
     deposit_amount = order.deposit_amount
     remaining_amount = order.remaining_amount
 
-    if not order.is_paid and order.status == 'PENDING':
+    if not order.is_paid and order.status != 'PENDING':
         order.status = 'PENDING'
         order.save()
 

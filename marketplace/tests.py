@@ -526,17 +526,30 @@ class BuyNowStockTest(TestCase):
             stock=2,
         )
 
-    def test_buy_decrements_stock(self):
+    def test_buy_does_not_decrement_stock_until_payment(self):
         self.client.login(username='buyer', password='pass1234')
         response = self.client.post(
             reverse('marketplace:buy_now', kwargs={'pk': self.product.pk})
         )
         self.product.refresh_from_db()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(self.product.stock, 1)
+        self.assertEqual(self.product.stock, 2)
         self.assertFalse(self.product.is_sold_out)
+        order = Order.objects.get(product=self.product, buyer=self.buyer)
+        self.assertEqual(order.status, 'PENDING')
 
-    def test_buy_last_unit_marks_sold_out(self):
+    def test_buy_sets_quantity_on_order(self):
+        self.client.login(username='buyer', password='pass1234')
+        self.client.post(
+            reverse('marketplace:buy_now', kwargs={'pk': self.product.pk}),
+            {'quantity': 2},
+        )
+        order = Order.objects.get(product=self.product, buyer=self.buyer)
+        self.assertEqual(order.quantity, 2)
+        self.assertEqual(order.total_price, Decimal('800.00'))
+        self.assertEqual(order.deposit_amount, Decimal('500.00'))
+
+    def test_buy_last_unit_not_marked_sold_until_payment(self):
         self.product.stock = 1
         self.product.save()
         self.client.login(username='buyer', password='pass1234')
@@ -544,9 +557,9 @@ class BuyNowStockTest(TestCase):
             reverse('marketplace:buy_now', kwargs={'pk': self.product.pk})
         )
         self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 0)
-        self.assertTrue(self.product.is_sold_out)
-        self.assertEqual(self.product.status, 'SOLD')
+        self.assertEqual(self.product.stock, 1)
+        self.assertFalse(self.product.is_sold_out)
+        self.assertEqual(self.product.status, 'APPROVED')
 
     def test_sold_out_product_not_buyable(self):
         self.product.stock = 0

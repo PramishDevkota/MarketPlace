@@ -12,8 +12,11 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-vx!0!*p&z$fawjgyd@r-v
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
-
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1,.vercel.app',
+    cast=Csv()
+)
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -95,8 +98,8 @@ LOGOUT_REDIRECT_URL = '/'
 
 GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
 
-KHALTI_INITIATE_URL = config('KHALTI_INITIATE_URL', default="https://khalti.com/api/v2/epayment/initiate/")
-KHALTI_LOOKUP_URL = config('KHALTI_LOOKUP_URL', default="https://khalti.com/api/v2/epayment/lookup/")
+KHALTI_INITIATE_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
+KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
 KHALTI_SECRET_KEY = config('KHALTI_SECRET_KEY', default='')
 KHALTI_PUBLIC_KEY = config('KHALTI_PUBLIC_KEY', default='')
 
