@@ -50,6 +50,14 @@
                         <span>Rs. {{ order.price_at_purchase|intcomma }}</span>
                     </div>
                     <div class="summary-row">
+                        <span>Quantity</span>
+                        <span>{{ order.quantity }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Price</span>
+                        <span>Rs. {{ order.total_price|intcomma }}</span>
+                    </div>
+                    <div class="summary-row">
                         <span>Status</span>
                         <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
                     </div>

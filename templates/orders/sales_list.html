@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}My Sales - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="dashboard-shell">
+        {% include "includes/dashboard_sidebar.html" %}
+        <div class="dashboard-main">
+        <div class="page-header">
+            <h1><i class="fas fa-tags"></i> My Sales</h1>
+        </div>
+
+        {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-card-image">
+                    {% if order.product.image %}
+                    <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                    {% else %}
+                    <div class="order-card-placeholder">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="order-card-info">
+                    <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
+                    <p class="order-card-price">Rs. {{ order.total_price|floatformat:2 }}</p>
+                    <p class="order-card-meta">
+                        <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                        <span>Buyer: {{ order.buyer.get_full_name|default:order.buyer.username }}</span>
+                        <span>Qty: {{ order.quantity }}</span>
+                        <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-tags"></i>
+            <h3>No sales yet</h3>
+            <p>Orders placed against your products will appear here.</p>
+            <a href="{% url 'marketplace:create_product' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Add a Product
+            </a>
+        </div>
+        {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

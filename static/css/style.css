@@ -2575,7 +2575,7 @@ textarea.form-control {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 16px;
     margin-bottom: 40px;
 }
@@ -2647,6 +2647,13 @@ textarea.form-control {
     font-weight: 700;
     color: var(--text);
     line-height: 1.2;
+    white-space: nowrap;
+}
+
+.stat-value.text-break {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .stat-label {

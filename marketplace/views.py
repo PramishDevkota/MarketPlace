@@ -225,19 +225,27 @@ def buy_now_view(request, pk):
             messages.error(request, 'Sorry, this product is sold out.')
             return redirect('marketplace:product_detail', pk=product.pk)
 
+        try:
+            quantity = max(1, int(request.POST.get('quantity', 1)))
+        except (TypeError, ValueError):
+            quantity = 1
+        if quantity > product.stock:
+            messages.error(request, f'Only {product.stock} unit(s) available for this product.')
+            return redirect('marketplace:product_detail', pk=product.pk)
+
         order = Order.objects.create(
             buyer=request.user,
             seller=product.seller,
             product=product,
             price_at_purchase=product.price,
-            status='CONFIRMED',
+            quantity=quantity,
+            status='PENDING',
         )
-        product.stock -= 1
-        if product.stock <= 0:
-            product.is_available = False
-            product.status = 'SOLD'
-        product.save()
-        messages.success(request, f'Purchase successful! Order #{order.pk} confirmed. Meet at {product.location_display}.')
+        messages.success(
+            request,
+            f'Order #{order.pk} created. Complete the Rs. {order.deposit_amount} advance '
+            f'deposit to reserve your product.',
+        )
         return redirect('orders:checkout', pk=order.pk)
 
     return render(request, 'marketplace/buy_confirm.html', {'product': product})

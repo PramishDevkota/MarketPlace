@@ -11,6 +11,7 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('CONFIRMED', 'Confirmed'),
+        ('PAID', 'Deposit Paid'),
         ('COMPLETED', 'Completed'),
         ('CANCELLED', 'Cancelled'),
     ]
@@ -25,6 +26,7 @@ class Order(models.Model):
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders_as_seller')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='FULL')
     transaction_id = models.CharField(max_length=255, blank=True)
@@ -47,11 +49,21 @@ class Order(models.Model):
         return reverse('orders:order_detail', kwargs={'pk': self.pk})
 
     @property
+    def total_price(self):
+        """Total purchase price (unit price x quantity)."""
+        return (self.price_at_purchase * Decimal(self.quantity or 1)).quantize(Decimal('0.01'))
+
+    @property
     def deposit_amount(self):
-        """50% of the purchase price payable now as the initial deposit."""
-        return (self.price_at_purchase * Decimal('0.50')).quantize(Decimal('0.01'))
+        """Advance deposit due now: Rs. 500, or the full price if it is below Rs. 500."""
+        return Decimal(min(self.total_price, Decimal('500.00'))).quantize(Decimal('0.01'))
+
+    @property
+    def remaining_amount(self):
+        """Remaining balance due at delivery (total price minus the advance deposit)."""
+        return (self.total_price - self.deposit_amount).quantize(Decimal('0.01'))
 
     @property
     def remaining_balance(self):
-        """Remaining balance due at delivery (price minus amount paid)."""
-        return (self.price_at_purchase - self.amount_paid).quantize(Decimal('0.01'))
+        """Alias kept for template compatibility."""
+        return self.remaining_amount

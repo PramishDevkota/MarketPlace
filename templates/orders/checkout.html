@@ -46,22 +46,22 @@
                 <div class="checkout-summary">
                     <div class="summary-row total">
                         <span>Total Price</span>
-                        <span class="summary-value">Rs. {{ order.price_at_purchase|intcomma }}</span>
+                        <span class="summary-value">Rs. {{ total_price|floatformat:2 }}</span>
                     </div>
                     <div class="summary-row">
-                        <span><i class="fas fa-mobile-alt"></i> 50% Initial Deposit (via Khalti)</span>
-                        <span class="summary-value deposit">Rs. {{ deposit_amount|intcomma }}</span>
+                        <span><i class="fas fa-mobile-alt"></i> Advance Deposit (via Khalti)</span>
+                        <span class="summary-value deposit">Rs. {{ deposit_amount|floatformat:2 }}</span>
                     </div>
                     <div class="summary-row">
-                        <span><i class="fas fa-handshake"></i> 50% Balance at Delivery</span>
-                        <span class="summary-value balance">Rs. {{ remaining_balance|intcomma }}</span>
+                        <span><i class="fas fa-handshake"></i> Balance at Delivery</span>
+                        <span class="summary-value balance">Rs. {{ remaining_balance|floatformat:2 }}</span>
                     </div>
                 </div>
 
                 {% if order.is_paid %}
                 <div class="checkout-paid-banner">
                     <i class="fas fa-check-circle"></i>
-                    <span>Deposit of Rs. {{ order.amount_paid|intcomma }} already received. The remaining balance of Rs. {{ remaining_balance|intcomma }} is due at delivery on campus.</span>
+                    <span>Deposit of Rs. {{ order.amount_paid|floatformat:2 }} already received. The remaining balance of Rs. {{ remaining_balance|floatformat:2 }} is due at delivery on campus.</span>
                 </div>
                 {% else %}
                 <button type="button" class="btn btn-primary btn-lg btn-block" id="pay-khalti-btn">
@@ -78,7 +78,7 @@
 
                     <div class="summary-row total">
                         <span>Total Price</span>
-                        <span class="summary-value">Rs. {{ order.price_at_purchase|intcomma }}</span>
+                        <span class="summary-value">Rs. {{ total_price|floatformat:2 }}</span>
                     </div>
 
                     <div class="summary-row">
@@ -118,7 +118,7 @@
 <div class="modal-overlay" id="khalti-modal" role="dialog" aria-modal="true" aria-labelledby="split-modal-title">
     <div class="modal">
         <div class="modal-header">
-            <h3 id="split-modal-title"><i class="fas fa-money-check-alt"></i> 50% Split Payment</h3>
+            <h3 id="split-modal-title"><i class="fas fa-money-check-alt"></i> Advance Deposit Payment</h3>
             <button type="button" class="modal-close" id="modal-close" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
@@ -127,14 +127,14 @@
             <div class="split-item initial">
                 <div class="split-icon"><i class="fas fa-mobile-alt"></i></div>
                 <div>
-                    <h4>50% Initial Deposit - Rs. {{ deposit_amount|intcomma }}</h4>
+                    <h4>Advance Deposit - Rs. {{ deposit_amount|floatformat:2 }}</h4>
                     <p>Paid now via Khalti Sandbox to reserve product.</p>
                 </div>
             </div>
             <div class="split-item balance">
                 <div class="split-icon"><i class="fas fa-handshake"></i></div>
                 <div>
-                    <h4>50% Remaining Balance - Rs. {{ remaining_balance|intcomma }}</h4>
+                    <h4>Remaining Balance - Rs. {{ remaining_balance|floatformat:2 }}</h4>
                     <p>Paid directly to the seller upon receiving and verifying the product at Islington College campus.</p>
                 </div>
             </div>

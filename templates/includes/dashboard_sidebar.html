@@ -25,25 +25,25 @@
         <a href="{% url 'marketplace:create_product' %}" class="sidebar-link">
             <i class="fas fa-plus-circle"></i> Add Product
         </a>
-        <a href="{% url 'orders:order_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'orders' %}active{% endif %}">
+        <a href="{% url 'orders:order_list' %}" class="sidebar-link {% if request.resolver_match.view_name == 'orders:order_list' %}active{% endif %}">
             <i class="fas fa-shopping-cart"></i> My Orders
         </a>
-        <a href="{% url 'orders:order_list' %}" class="sidebar-link">
+        <a href="{% url 'orders:sales_list' %}" class="sidebar-link {% if request.resolver_match.view_name == 'orders:sales_list' %}active{% endif %}">
             <i class="fas fa-tags"></i> My Sales
         </a>
-        <a href="{% url 'orders:order_list' %}" class="sidebar-link">
+        <a href="{% url 'messaging:sent_requests' %}" class="sidebar-link {% if request.resolver_match.view_name == 'messaging:sent_requests' %}active{% endif %}">
             <i class="fas fa-paper-plane"></i> My Sent Requests
         </a>
-        <a href="{% url 'messaging:conversation_list' %}" class="sidebar-link">
+        <a href="{% url 'messaging:received_requests' %}" class="sidebar-link {% if request.resolver_match.view_name == 'messaging:received_requests' %}active{% endif %}">
             <i class="fas fa-inbox"></i> My Received Requests
         </a>
         <a href="{% url 'messaging:conversation_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'messaging' %}active{% endif %}">
             <i class="fas fa-comments"></i> Messages
         </a>
-        <a href="{% url 'accounts:profile_edit' %}" class="sidebar-link">
+        <a href="{% url 'accounts:profile_edit' %}" class="sidebar-link {% if request.resolver_match.view_name == 'accounts:profile_edit' %}active{% endif %}">
             <i class="fas fa-user-edit"></i> Edit Profile
         </a>
-        <a href="{% url 'accounts:profile_edit' %}" class="sidebar-link">
+        <a href="{% url 'accounts:change_password' %}" class="sidebar-link {% if request.resolver_match.view_name == 'accounts:change_password' %}active{% endif %}">
             <i class="fas fa-key"></i> Change Password
         </a>
         <a href="{% url 'accounts:logout' %}" class="sidebar-link">

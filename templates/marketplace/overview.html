@@ -24,7 +24,7 @@
             <div class="stat-card stat-card-success">
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-info">
-                    <span class="stat-value">Rs. {{ total_gmv|intcomma }}</span>
+                    <span class="stat-value">Rs. {{ total_gmv|floatformat:2 }}</span>
                     <span class="stat-label">Total Volume (GMV)</span>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                         <tr>
                             <td>{{ cat.product__category__name }}</td>
                             <td>{{ cat.items_sold|intcomma }}</td>
-                            <td><strong>Rs. {{ cat.gmv|intcomma }}</strong></td>
+                            <td><strong>Rs. {{ cat.gmv|floatformat:2 }}</strong></td>
                         </tr>
                         {% endfor %}
                     </tbody>

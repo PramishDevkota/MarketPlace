@@ -12,18 +12,27 @@ from .models import Order
 @login_required
 @admin_users_forbidden
 def order_list_view(request):
-    if request.user.is_seller:
-        orders = Order.objects.filter(
-            seller=request.user
-        ).select_related('buyer', 'product', 'product__category')
-    else:
-        orders = Order.objects.filter(
-            buyer=request.user
-        ).select_related('seller', 'product', 'product__category')
+    """'My Orders': every order where the current user is the buyer."""
+    orders = Order.objects.filter(
+        buyer=request.user
+    ).select_related('seller', 'product', 'product__category')
     context = {
         'orders': orders,
     }
     return render(request, 'orders/order_list.html', context)
+
+
+@login_required
+@admin_users_forbidden
+def sales_list_view(request):
+    """'My Sales': every order placed against products owned by the current user."""
+    orders = Order.objects.filter(
+        seller=request.user
+    ).select_related('buyer', 'product', 'product__category')
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'orders/sales_list.html', context)
 
 
 @login_required
@@ -50,12 +59,22 @@ def order_checkout_view(request, pk):
     if request.user != order.buyer:
         messages.error(request, 'You are not authorized to check out this order.')
         return redirect('marketplace:home')
-    tax_amount = (order.price_at_purchase * Decimal('0.02')).quantize(Decimal('0.01'))
-    grand_total = (order.price_at_purchase + tax_amount).quantize(Decimal('0.01'))
+
+    total_price = order.total_price
+    deposit_amount = order.deposit_amount
+    remaining_amount = order.remaining_amount
+
+    if not order.is_paid and order.status == 'PENDING':
+        order.status = 'PENDING'
+        order.save()
+
+    tax_amount = (total_price * Decimal('0.02')).quantize(Decimal('0.01'))
+    grand_total = (total_price + tax_amount).quantize(Decimal('0.01'))
     context = {
         'order': order,
-        'deposit_amount': order.deposit_amount,
-        'remaining_balance': order.remaining_balance,
+        'total_price': total_price,
+        'deposit_amount': deposit_amount,
+        'remaining_balance': remaining_amount,
         'tax_amount': tax_amount,
         'grand_total': grand_total,
     }
@@ -63,8 +82,24 @@ def order_checkout_view(request, pk):
 
 
 @login_required
+def order_success_view(request, pk):
+    order = get_object_or_404(
+        Order.objects.select_related('buyer', 'seller', 'product', 'product__category'),
+        pk=pk,
+    )
+    if request.user != order.buyer and request.user != order.seller and not request.user.is_staff:
+        messages.error(request, 'You are not authorized to view this order.')
+        return redirect('marketplace:home')
+    return render(request, 'orders/order_success.html', {'order': order})
+
+
+@login_required
 def initiate_khalti_payment(request, order_id):
     order = get_object_or_404(Order, pk=order_id, buyer=request.user)
+
+    if order.is_paid or order.status in ('PAID', 'COMPLETED'):
+        messages.info(request, f'Order #{order.pk} has already been paid.')
+        return redirect('orders:order_detail', pk=order.pk)
 
     amount_in_paisa = int(float(order.deposit_amount) * 100)
 
@@ -73,7 +108,7 @@ def initiate_khalti_payment(request, order_id):
         "website_url": request.build_absolute_uri('/'),
         "amount": amount_in_paisa,
         "purchase_order_id": str(order.id),
-        "purchase_order_name": f"Order #{order.id} Deposit",
+        "purchase_order_name": f"Order #{order.id} Advance Deposit",
         "customer_info": {
             "name": request.user.get_full_name() or request.user.username,
             "email": request.user.email or "test@example.com",
@@ -157,17 +192,31 @@ def khalti_verify_payment(request):
         messages.error(request, 'We could not find an order matching this payment.')
         return redirect('orders:order_list')
 
+    if order.is_paid or order.status in ('PAID', 'COMPLETED'):
+        messages.info(request, f'Order #{order.pk} has already been paid. The stock was already reserved.')
+        return redirect('orders:order_detail', pk=order.pk)
+
     if data.get('status') == 'Completed':
         order.amount_paid = order.deposit_amount
         order.payment_type = 'SPLIT_INITIAL'
         order.is_paid = True
+        order.status = 'PAID'
         order.save()
+
+        product = order.product
+        product.stock -= order.quantity
+        if product.stock <= 0:
+            product.is_available = False
+            product.status = 'SOLD'
+        product.save()
+
         messages.success(
             request,
-            f'50% deposit of Rs. {order.amount_paid} received via Khalti. '
-            f'The remaining 50% (Rs. {order.remaining_balance}) is due when you receive the product on campus.',
+            f'Advance deposit of Rs. {order.amount_paid} received via Khalti. '
+            f'The remaining balance of Rs. {order.remaining_amount} is due when you receive '
+            f'the {product.name} on campus.',
         )
-        return redirect('orders:order_detail', pk=order.pk)
+        return redirect('orders:order_success', pk=order.pk)
 
-    messages.error(request, 'Payment was not completed on Khalti. Please try again.')
+    messages.error(request, 'Payment was not completed on Khalti. Your stock was not reserved. Please try again.')
     return redirect('orders:checkout', pk=order.pk)

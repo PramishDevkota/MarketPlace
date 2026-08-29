@@ -25,6 +25,36 @@ def conversation_list_view(request):
 
 @login_required
 @admin_users_forbidden
+def sent_requests_view(request):
+    """'My Sent Requests': product inquiries the current user initiated."""
+    conversations = Conversation.objects.filter(buyer=request.user)
+    conversations = conversations.select_related('buyer', 'seller', 'product').distinct()
+    context = {
+        'conversations': conversations,
+        'page_title': 'My Sent Requests',
+        'page_icon': 'fa-paper-plane',
+        'empty_message': 'You have not sent any product requests yet.',
+    }
+    return render(request, 'messaging/request_list.html', context)
+
+
+@login_required
+@admin_users_forbidden
+def received_requests_view(request):
+    """'My Received Requests': product inquiries targeted at the current user's items."""
+    conversations = Conversation.objects.filter(seller=request.user)
+    conversations = conversations.select_related('buyer', 'seller', 'product').distinct()
+    context = {
+        'conversations': conversations,
+        'page_title': 'My Received Requests',
+        'page_icon': 'fa-inbox',
+        'empty_message': 'No buyers have inquired about your items yet.',
+    }
+    return render(request, 'messaging/request_list.html', context)
+
+
+@login_required
+@admin_users_forbidden
 def conversation_detail_view(request, pk):
     conversation = get_object_or_404(
         Conversation.objects.select_related('buyer', 'seller', 'product'),

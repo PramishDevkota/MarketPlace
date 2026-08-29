@@ -37,6 +37,11 @@
                 </div>
                 <form method="post" class="buy-confirm-form">
                     {% csrf_token %}
+                    <div class="buy-confirm-qty">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" min="1" max="{{ product.stock }}" value="1" class="form-control" style="width: 100px; display: inline-block;">
+                        <span class="buy-confirm-qty-note">({{ product.stock }} available)</span>
+                    </div>
                     <div class="form-actions">
                         <a href="{% url 'marketplace:product_detail' pk=product.pk %}" class="btn btn-outline">
                             <i class="fas fa-arrow-left"></i> Go Back

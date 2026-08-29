@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Order #{{ order.pk }} - Payment Received - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="form-page">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1><i class="fas fa-check-circle"></i> Payment Received!</h1>
+                    <p>Your advance deposit has been confirmed via Khalti.</p>
+                </div>
+
+                <div class="order-success-details">
+                    <div class="summary-row">
+                        <span>Order</span>
+                        <span><a href="{% url 'orders:order_detail' pk=order.pk %}">Order #{{ order.pk }}</a></span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Product</span>
+                        <span>{{ order.product.name }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Quantity</span>
+                        <span>{{ order.quantity }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Total Price</span>
+                        <span>Rs. {{ order.total_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Advance Deposit Paid</span>
+                        <span>Rs. {{ order.amount_paid|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Balance Due at Delivery</span>
+                        <span>Rs. {{ order.remaining_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Status</span>
+                        <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <div class="buy-confirm-notice">
+                    <i class="fas fa-handshake"></i>
+                    <p>Your stock is now reserved. Meet the seller at <strong>{{ order.product.location_display }}</strong> and settle the remaining balance of <strong>Rs. {{ order.remaining_amount|floatformat:2 }}</strong> when you receive the product.</p>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'orders:order_detail' pk=order.pk %}" class="btn btn-outline">
+                        <i class="fas fa-eye"></i> View Order
+                    </a>
+                    <a href="{% url 'marketplace:home' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Go to Marketplace
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
