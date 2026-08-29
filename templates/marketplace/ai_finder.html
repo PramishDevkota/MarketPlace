@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}AI Product Finder - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="marketplace-header">
+            <h1><i class="fas fa-magic"></i> AI Product Finder</h1>
+            <p>Describe what you're looking for and let AI find related finds</p>
+        </div>
+
+        <div class="ai-finder-search">
+            <form method="get" class="filter-form">
+                <div class="filter-section">
+                    <h3><i class="fas fa-search"></i> What are you looking for?</h3>
+                    <input type="text" name="query" value="{{ query }}" placeholder="e.g. laptop, headphone, books..." class="form-control" required>
+                </div>
+                <div class="filter-section">
+                    <h3><i class="fas fa-dollar-sign"></i> Max Budget (Optional)</h3>
+                    <div class="price-range-inputs">
+                        <input type="number" name="max_budget" value="{{ max_budget }}" placeholder="Max price in Rs." class="form-control" min="0">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-wand-magic-sparkles"></i> Find Products
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if recommendations is not None %}
+        <div class="marketplace-results">
+            <p>{{ recommendations|length }} match{{ recommendations|length|pluralize }} found for "{{ query }}"{% if max_budget %} under Rs. {{ max_budget|intcomma }}{% endif %}</p>
+        </div>
+
+        {% if recommendations %}
+        <div class="products-grid ai-finder-grid">
+            {% for item in recommendations %}
+            <div class="product-card ai-finder-card">
+                <span class="badge bg-success match-badge">{{ item.match_percentage }}% Match</span>
+                <a href="{{ item.product.get_absolute_url }}" class="product-card-link">
+                    <div class="product-card-image">
+                        {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                        <div class="product-card-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                        <span class="product-card-category">{{ item.product.category.name|default:"Uncategorized" }}</span>
+                    </div>
+                    <div class="product-card-body">
+                        <h3 class="product-card-title">{{ item.product.name }}</h3>
+                        <p class="product-card-price">Rs. {{ item.product.price|intcomma }}</p>
+                        <div class="product-card-meta">
+                            {% if item.product.is_available %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> In Stock</span>
+                            {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                <div class="ai-finder-actions">
+                    <a href="{{ item.product.get_absolute_url }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-search"></i>
+            <h3>No matches found</h3>
+            <p>Try a different query or remove the budget cap.</p>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% load static humanize %}
+<div class="product-card">
+    <a href="{{ product.get_absolute_url }}" class="product-card-link">
+        <div class="product-card-image">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+            <div class="product-card-placeholder">
+                <i class="fas fa-image"></i>
+            </div>
+            {% endif %}
+            <span class="product-card-category">{{ product.category.name|default:"Uncategorized" }}</span>
+            {% if product.is_sold_out %}
+            <span class="product-card-soldout">SOLD OUT</span>
+            {% endif %}
+        </div>
+        <div class="product-card-body">
+            <h3 class="product-card-title">{{ product.name }}</h3>
+            <p class="product-card-price">Rs. {{ product.price|intcomma }}</p>
+            <div class="product-card-meta">
+                <span class="product-card-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ product.location_display }}
+                </span>
+                {% if product.average_rating %}
+                <span class="product-card-rating">
+                    <i class="fas fa-star"></i>
+                    {{ product.average_rating }} ({{ product.review_count }})
+                </span>
+                {% else %}
+                <span class="product-card-rating no-rating">
+                    No reviews yet
+                </span>
+                {% endif %}
+            </div>
+            <div class="product-card-seller">
+                <i class="fas fa-user"></i>
+                {{ product.seller.get_full_name|default:product.seller.username }}
+            </div>
+        </div>
+    </a>
+</div>

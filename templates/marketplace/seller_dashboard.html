@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Seller Dashboard - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="dashboard-shell">
+        {% include "includes/dashboard_sidebar.html" %}
+        <div class="dashboard-main">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-store"></i> Seller Dashboard</h1>
+                <p>Manage your products and track your sales</p>
+            </div>
+            <a href="{% url 'marketplace:create_product' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Product
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon"><i class="fas fa-box"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ total_products }}</span>
+                    <span class="stat-label">Total Products</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ approved_products }}</span>
+                    <span class="stat-label">Approved</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ pending_products }}</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-danger">
+                <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ rejected_products }}</span>
+                    <span class="stat-label">Rejected</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-info">
+                <div class="stat-icon"><i class="fas fa-handshake"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ sold_products }}</span>
+                    <span class="stat-label">Sold</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-accent">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">Rs. {{ total_revenue|intcomma }}</span>
+                    <span class="stat-label">Revenue</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-box"></i> My Products</h2>
+            </div>
+            {% if products %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="table-product">
+                                    {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="table-product-image">
+                                    {% else %}
+                                    <div class="table-product-placeholder"><i class="fas fa-image"></i></div>
+                                    {% endif %}
+                                    <a href="{% url 'marketplace:product_detail' pk=product.pk %}">{{ product.name|truncatewords:5 }}</a>
+                                </div>
+                            </td>
+                            <td>{{ product.category.name|default:"-" }}</td>
+                            <td><strong>Rs. {{ product.price|intcomma }}</strong></td>
+                            <td>
+                                <span class="badge {% if product.is_sold_out %}badge-danger{% else %}badge-success{% endif %}">
+                                    {{ product.stock }}
+                                </span>
+                            </td>
+                            <td>{{ product.location_display }}</td>
+                            <td><span class="badge badge-{{ product.status|lower }}">{{ product.get_status_display }}</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="{% url 'marketplace:edit_product' pk=product.pk %}" class="btn btn-sm btn-outline" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'marketplace:delete_product' pk=product.pk %}" class="btn btn-sm btn-outline" title="Delete" style="color: var(--danger); border-color: var(--danger);">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                                <form method="post" action="{% url 'marketplace:restock_product' pk=product.pk %}" class="restock-form" style="margin-top: 8px;">
+                                    {% csrf_token %}
+                                    <div class="restock-inline">
+                                        <input type="number" name="restock_amount" min="1" value="1" class="form-control form-control-sm" style="width: 70px; display: inline-block;" required>
+                                        <button type="submit" class="btn btn-sm btn-primary" title="Restock Inventory">
+                                            <i class="fas fa-boxes"></i> Restock
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-box"></i>
+                <h3>No products yet</h3>
+                <p>Start selling by adding your first product.</p>
+                <a href="{% url 'marketplace:create_product' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if incoming_orders %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-shopping-cart"></i> Incoming Orders</h2>
+                <a href="{% url 'orders:order_list' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="orders-list">
+                {% for order in incoming_orders %}
+                <div class="order-card">
+                    <div class="order-card-image">
+                        {% if order.product.image %}
+                        <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                        {% else %}
+                        <div class="order-card-placeholder"><i class="fas fa-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="order-card-info">
+                        <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
+                        <p class="order-card-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                        <p class="order-card-meta">
+                            <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                            <span>Buyer: {{ order.buyer.get_full_name|default:order.buyer.username }}</span>
+                            <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

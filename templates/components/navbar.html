@@ -1,0 +1,120 @@
+{% load static %}
+<nav class="navbar">
+    <div class="navbar-container">
+        <a href="{% url 'marketplace:home' %}" class="navbar-brand">
+            <i class="fas fa-store"></i>
+            <span class="brand-text">Islington <span class="brand-highlight">Marketplace</span></span>
+        </a>
+
+        <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="navbar-menu" id="navbarMenu">
+            <a href="{% url 'marketplace:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a href="{% url 'marketplace:product_list' %}" class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                <i class="fas fa-shopping-bag"></i> Marketplace
+            </a>
+            <a href="{% url 'marketplace:ai_finder' %}" class="nav-link {% if request.resolver_match.url_name == 'ai_finder' %}active{% endif %}">
+                <i class="fas fa-robot text-primary me-1"></i> AI Finder
+            </a>
+            <a href="{% url 'marketplace:overview' %}" class="nav-link {% if request.resolver_match.url_name == 'overview' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i> Overview
+            </a>
+            <a href="{% url 'marketplace:about' %}" class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                <i class="fas fa-info-circle"></i> About
+            </a>
+            <a href="{% url 'marketplace:contact' %}" class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                <i class="fas fa-envelope"></i> Contact
+            </a>
+
+            {% if user.is_authenticated %}
+                {% if user.is_staff or user.is_superuser %}
+                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-danger nav-cta">
+                    <i class="fas fa-tools"></i> Admin Panel
+                </a>
+                {% else %}
+                <a href="{% url 'messaging:conversation_list' %}" class="nav-link {% if request.resolver_match.app_name == 'messaging' %}active{% endif %}">
+                    <i class="fas fa-comments"></i> Messages
+                </a>
+
+                <a href="{% url 'orders:order_list' %}" class="nav-link">
+                    <i class="fas fa-shopping-cart"></i> Cart
+                    <span class="cart-badge" id="cart-count-badge" {% if request.user.cart.items.count > 0 %}style="display:inline-block;"{% endif %}>{{ request.user.cart.items.count }}</span>
+                </a>
+
+                <div class="nav-dropdown">
+                    <button class="nav-link nav-dropdown-toggle">
+                        <i class="fas fa-user-circle"></i> {{ user.get_full_name|default:user.username }}
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
+                    </button>
+                    <div class="nav-dropdown-menu">
+                        <a href="{% url 'accounts:profile' pk=user.pk %}" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        {% if user.is_seller %}
+                        <a href="{% url 'seller_dashboard' %}" class="dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i> Seller Dashboard
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'buyer_dashboard' %}" class="dropdown-item">
+                            <i class="fas fa-tachometer-alt"></i> My Purchases
+                        </a>
+                        <a href="{% url 'orders:order_list' %}" class="dropdown-item">
+                            <i class="fas fa-shopping-cart"></i> My Orders
+                        </a>
+                        {% if not user.is_seller %}
+                        <a href="{% url 'accounts:become_seller' %}" class="dropdown-item">
+                            <i class="fas fa-store"></i> Become a Seller
+                        </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if user.is_seller %}
+                <a href="{% url 'marketplace:create_product' %}" class="btn btn-sm btn-primary nav-cta">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+                {% endif %}
+                {% endif %}
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-sm btn-primary nav-cta">
+                    <i class="fas fa-user-plus"></i> Register
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<script>
+document.getElementById('navbarToggle').addEventListener('click', function() {
+    document.getElementById('navbarMenu').classList.toggle('show');
+});
+
+document.querySelectorAll('.nav-dropdown-toggle').forEach(function(toggle) {
+    toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.parentElement.classList.toggle('open');
+    });
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.nav-dropdown')) {
+        document.querySelectorAll('.nav-dropdown').forEach(function(d) {
+            d.classList.remove('open');
+        });
+    }
+});
+</script>

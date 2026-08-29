@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}My Orders - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="dashboard-shell">
+        {% include "includes/dashboard_sidebar.html" %}
+        <div class="dashboard-main">
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-cart"></i> My Orders</h1>
+        </div>
+
+        {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-card-image">
+                    {% if order.product.image %}
+                    <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                    {% else %}
+                    <div class="order-card-placeholder">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="order-card-info">
+                    <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
+                    <p class="order-card-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                    <p class="order-card-meta">
+                        <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                        <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>No orders yet</h3>
+            <p>Your purchase history will appear here.</p>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Browse Marketplace
+            </a>
+        </div>
+        {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

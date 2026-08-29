@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Islington Marketplace - Buy. Sell. Connect. Right on Campus.{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-bg">
+        {% static 'images/hero-bg.png' as hero_bg %}
+        <div class="hero-bg-image" style="background-image: url('{{ hero_bg }}')"></div>
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="hero-title-main">Islington Marketplace</span>
+        </h1>
+        <p class="hero-subtitle">Buy. Sell. Connect. Right on Campus.</p>
+        <p class="hero-description">
+            The trusted marketplace for Islington College students. Find great deals on textbooks, electronics, clothing, and more &mdash; all within campus.
+        </p>
+        <div class="hero-actions">
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-lg btn-primary">
+                <i class="fas fa-shopping-bag"></i> Explore Marketplace
+            </a>
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'admin:index' %}" class="btn btn-lg btn-outline-light">
+                <i class="fas fa-tools"></i> Admin Panel
+            </a>
+            {% elif user.is_authenticated and user.is_seller %}
+            <a href="{% url 'marketplace:product_list' %}?action=add" class="btn btn-lg btn-outline-light">
+                <i class="fas fa-plus-circle"></i> Sell an Item
+            </a>
+            {% elif user.is_authenticated %}
+            <a href="{% url 'accounts:become_seller' %}" class="btn btn-lg btn-outline-light">
+                <i class="fas fa-hand-holding"></i> Become a Seller
+            </a>
+            {% else %}
+            <a href="{% url 'accounts:register' %}" class="btn btn-lg btn-outline-light">
+                <i class="fas fa-user-plus"></i> Join Now
+            </a>
+            {% endif %}
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <i class="fas fa-box"></i>
+                <span>{{ products|length }}+</span>
+                <label>Products</label>
+            </div>
+            <div class="hero-stat">
+                <i class="fas fa-users"></i>
+                <span>100+</span>
+                <label>Students</label>
+            </div>
+            <div class="hero-stat">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>4</span>
+                <label>Campus Locations</label>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if categories %}
+<section class="section categories-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Browse by Category</h2>
+            <p class="section-subtitle">Find exactly what you need</p>
+        </div>
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="{% url 'marketplace:product_list' %}?category={{ category.slug }}" class="category-card">
+                <div class="category-icon">
+                    <i class="fas fa-tag"></i>
+                </div>
+                <span class="category-name">{{ category.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if products %}
+<section class="section products-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Latest Products</h2>
+            <a href="{% url 'marketplace:product_list' %}" class="section-link">
+                View All <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        <div class="products-grid">
+            {% for product in products %}
+                {% include "components/product_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section locations-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Meetup Locations</h2>
+            <p class="section-subtitle">All meetups happen safely on campus</p>
+        </div>
+        <div class="home-location-cards">
+            <div class="home-location-card">
+                <div class="home-location-image">
+                    <img src="{% static 'images/kumari-four.jpg' %}" alt="Kumari Hall">
+                </div>
+                <div class="home-location-label">
+                    <i class="fas fa-building"></i> Kumari Hall
+                </div>
+            </div>
+            <div class="home-location-card">
+                <div class="home-location-image">
+                    <img src="{% static 'images/ChiyaChautari-min.png' %}" alt="BRIT Cafe">
+                </div>
+                <div class="home-location-label">
+                    <i class="fas fa-coffee"></i> BRIT Cafe
+                </div>
+            </div>
+            <div class="home-location-card">
+                <div class="home-location-image">
+                    <img src="{% static 'images/img-1.png' %}" alt="Main Block">
+                </div>
+                <div class="home-location-label">
+                    <i class="fas fa-university"></i> Main Block
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <div class="cta-content">
+                <h2>Ready to Start Selling?</h2>
+                <p>Join our community of student sellers and reach hundreds of fellow Islington College students.</p>
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="btn btn-lg btn-primary">
+                    <i class="fas fa-tools"></i> Admin Panel
+                </a>
+                {% elif user.is_authenticated and not user.is_seller %}
+                <a href="{% url 'accounts:become_seller' %}" class="btn btn-lg btn-primary">
+                    <i class="fas fa-store"></i> Become a Seller
+                </a>
+                {% elif not user.is_authenticated %}
+                <a href="{% url 'accounts:register' %}" class="btn btn-lg btn-primary">
+                    <i class="fas fa-user-plus"></i> Sign Up Now
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

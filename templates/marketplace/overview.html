@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Marketplace Overview - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-chart-line"></i> Marketplace Overview</h1>
+                <p>Public sales insights across the entire marketplace</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon"><i class="fas fa-box-open"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ total_items_sold|intcomma }}</span>
+                    <span class="stat-label">Total Items Sold</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">Rs. {{ total_gmv|intcomma }}</span>
+                    <span class="stat-label">Total Volume (GMV)</span>
+                </div>
+            </div>
+        </div>
+
+        {% if top_categories %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-tags"></i> Top-Selling Categories</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Items Sold</th>
+                            <th>GMV</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in top_categories %}
+                        <tr>
+                            <td>{{ cat.product__category__name }}</td>
+                            <td>{{ cat.items_sold|intcomma }}</td>
+                            <td><strong>Rs. {{ cat.gmv|intcomma }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if recent_orders %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-clock"></i> Recent Activity</h2>
+            </div>
+            <div class="orders-list">
+                {% for order in recent_orders %}
+                <div class="order-card">
+                    <div class="order-card-image">
+                        {% if order.product.image %}
+                        <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                        {% else %}
+                        <div class="order-card-placeholder"><i class="fas fa-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="order-card-info">
+                        <h3>{{ order.product.name }}</h3>
+                        <p class="order-card-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                        <p class="order-card-meta">
+                            <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                            <span>{{ order.buyer.get_full_name|default:order.buyer.username }}</span>
+                            <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

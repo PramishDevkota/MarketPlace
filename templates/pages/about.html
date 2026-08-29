@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="static-page">
+            <div class="static-page-header">
+                <h1>About Islington Marketplace</h1>
+                <p>The campus marketplace for Islington College students</p>
+            </div>
+
+            <div class="static-page-content">
+                <section class="about-section">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h2>What We Do</h2>
+                        <p>
+                            Islington Marketplace is a dedicated online platform designed exclusively for the students and
+                            community of Islington College. We provide a safe, convenient, and trusted environment where
+                            students can buy and sell products directly within the college premises.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="about-section">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h2>Our Mission</h2>
+                        <p>
+                            Our mission is to create a thriving campus marketplace that connects students, making it easy
+                            to find great deals on textbooks, electronics, clothing, stationery, and much more. By keeping
+                            transactions within the college, we ensure safety, convenience, and community building.
+                        </p>
+                    </div>
+                </section>
+
+                <section class="about-section">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h2>How It Works</h2>
+                        <ul class="about-list">
+                            <li><strong>Register</strong> &mdash; Create your free account in seconds.</li>
+                            <li><strong>Browse</strong> &mdash; Explore products from fellow students.</li>
+                            <li><strong>Connect</strong> &mdash; Message sellers directly to negotiate.</li>
+                            <li><strong>Meet</strong> &mdash; Arrange a meetup at one of our 4 campus locations.</li>
+                            <li><strong>Review</strong> &mdash; Leave a review to help other students.</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="about-section">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h2>Campus Locations</h2>
+                        <p>All meetups happen safely within Islington College premises at these designated spots:</p>
+                        <div class="location-cards">
+                            <div class="location-card">
+                                <div class="location-card-image">
+                                    <img src="{% static 'images/kumari-four.jpg' %}" alt="Kumari Hall Location Map">
+                                </div>
+                                <div class="location-card-info">
+                                    <h4><i class="fas fa-building"></i> Kumari Hall</h4>
+                                    <p>One of the main gathering spots on campus. Ideal for meetups and product exchanges.</p>
+                                </div>
+                            </div>
+                            <div class="location-card">
+                                <div class="location-card-image">
+                                    <img src="{% static 'images/ChiyaChautari-min.png' %}" alt="BRIT Cafe - Chiya Chautari">
+                                </div>
+                                <div class="location-card-info">
+                                    <h4><i class="fas fa-coffee"></i> BRIT Cafe</h4>
+                                    <p>The campus cafe &mdash; a relaxed spot for buyers and sellers to meet over a cup of tea.</p>
+                                </div>
+                            </div>
+                            <div class="location-card">
+                                <div class="location-card-image">
+                                    <img src="{% static 'images/img-1.png' %}" alt="Main Block">
+                                </div>
+                                <div class="location-card-info">
+                                    <h4><i class="fas fa-university"></i> Main Block</h4>
+                                    <p>The central academic building &mdash; a convenient and well-known meeting point.</p>
+                                </div>
+                            </div>
+                            <div class="location-card">
+                                <div class="location-card-image location-card-icon-bg">
+                                    <i class="fas fa-laptop-code"></i>
+                                </div>
+                                <div class="location-card-info">
+                                    <h4><i class="fas fa-laptop-code"></i> Skill Block</h4>
+                                    <p>Perfect for tech and electronics meetups in the skills training area.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

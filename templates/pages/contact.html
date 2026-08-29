@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="static-page">
+            <div class="static-page-header">
+                <h1>Contact Us</h1>
+                <p>Get in touch with the Islington Marketplace team</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-info-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Marketplace Owner</h3>
+                    <p class="contact-name">Pramish</p>
+                </div>
+
+                <div class="contact-info-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>Email</h3>
+                    <a href="mailto:pramishpramish1@gmail.com">pramishpramish1@gmail.com</a>
+                </div>
+
+                <div class="contact-info-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h3>Phone</h3>
+                    <a href="tel:9745990859">9745990859</a>
+                </div>
+
+                <div class="contact-info-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Sponsored By</h3>
+                    <p class="contact-name">Islington College</p>
+                </div>
+            </div>
+
+            <div class="contact-form-section">
+                <h2>Send Us a Message</h2>
+                <form method="post" class="contact-form">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name"><i class="fas fa-user"></i> Name</label>
+                            <input type="text" id="name" name="name" class="form-control" placeholder="Your name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="email" name="email" class="form-control" placeholder="Your email" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject"><i class="fas fa-tag"></i> Subject</label>
+                        <input type="text" id="subject" name="subject" class="form-control" placeholder="Subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message"><i class="fas fa-comment"></i> Message</label>
+                        <textarea id="message" name="message" class="form-control" rows="5" placeholder="Your message..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

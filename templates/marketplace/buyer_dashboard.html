@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}My Dashboard - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1><i class="fas fa-user"></i> My Dashboard</h1>
+                <p>Track your purchases, messages, and reviews</p>
+            </div>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Browse Marketplace
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ total_purchases }}</span>
+                    <span class="stat-label">Total Purchases</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ active_orders }}</span>
+                    <span class="stat-label">Active Orders</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">{{ completed_orders }}</span>
+                    <span class="stat-label">Completed</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-accent">
+                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value">Rs. {{ total_spent|intcomma }}</span>
+                    <span class="stat-label">Total Spent</span>
+                </div>
+            </div>
+        </div>
+
+        {% if pending_review_products %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-star"></i> Awaiting Your Review</h2>
+            </div>
+            <div class="pending-reviews-grid">
+                {% for product in pending_review_products %}
+                <div class="pending-review-card">
+                    <div class="pending-review-info">
+                        <h4>{{ product.name }}</h4>
+                        <p>How was your experience with this product?</p>
+                    </div>
+                    <a href="{% url 'reviews:create_review' product_id=product.pk %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-pen"></i> Write Review
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="dashboard-grid">
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-cart"></i> My Purchases</h2>
+                    <a href="{% url 'orders:order_list' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+                </div>
+                {% if orders %}
+                <div class="orders-list">
+                    {% for order in orders|slice:":5" %}
+                    <div class="order-card">
+                        <div class="order-card-image">
+                            {% if order.product.image %}
+                            <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                            {% else %}
+                            <div class="order-card-placeholder"><i class="fas fa-image"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="order-card-info">
+                            <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
+                            <p class="order-card-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                            <p class="order-card-meta">
+                                <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                                <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state small">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>No purchases yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-comments"></i> Active Chats</h2>
+                    <a href="{% url 'messaging:conversation_list' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+                </div>
+                {% if active_chats %}
+                <div class="conversations-list">
+                    {% for conversation in active_chats|slice:":5" %}
+                    <a href="{{ conversation.get_absolute_url }}" class="conversation-item">
+                        <div class="conversation-avatar">
+                            {% if conversation.buyer == user %}
+                                {% if conversation.seller.profile_image %}
+                                <img src="{{ conversation.seller.profile_image.url }}" alt="">
+                                {% else %}
+                                <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                            {% else %}
+                                {% if conversation.buyer.profile_image %}
+                                <img src="{{ conversation.buyer.profile_image.url }}" alt="">
+                                {% else %}
+                                <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                {% if conversation.buyer == user %}
+                                <strong>{{ conversation.seller.get_full_name|default:conversation.seller.username }}</strong>
+                                {% else %}
+                                <strong>{{ conversation.buyer.get_full_name|default:conversation.buyer.username }}</strong>
+                                {% endif %}
+                                <span class="conversation-date">{{ conversation.updated_at|date:"M d" }}</span>
+                            </div>
+                            <p class="conversation-product">
+                                <i class="fas fa-box"></i> {{ conversation.product.name }}
+                            </p>
+                            {% if conversation.last_message %}
+                            <p class="conversation-preview">{{ conversation.last_message.content|truncatewords:15 }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state small">
+                    <i class="fas fa-comments"></i>
+                    <p>No active conversations.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if recommended_products %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lightbulb"></i> Recommended For You</h2>
+                <a href="{% url 'marketplace:product_list' %}" class="section-link">Browse More <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="product-grid">
+                {% for product in recommended_products %}
+                    {% include "components/product_card.html" %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

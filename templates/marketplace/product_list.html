@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Marketplace - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="marketplace-header">
+            <h1>Marketplace</h1>
+            <p>Find great deals from fellow Islington College students</p>
+        </div>
+
+        <div class="marketplace-layout">
+            <aside class="marketplace-sidebar">
+                <form method="get" class="filter-form" id="filterForm">
+                    <div class="filter-section">
+                        <h3><i class="fas fa-search"></i> Search</h3>
+                        <input type="text" name="q" value="{{ query }}" placeholder="Search products..." class="form-control">
+                    </div>
+
+                    <div class="filter-section">
+                        <h3><i class="fas fa-tags"></i> Category</h3>
+                        <select name="category" class="form-control" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+                        <select name="location" class="form-control" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Locations</option>
+                            {% for value, label in locations %}
+                            <option value="{{ value }}" {% if selected_location == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3><i class="fas fa-dollar-sign"></i> Price Range</h3>
+                        <div class="price-range-inputs">
+                            <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min" class="form-control" min="0">
+                            <span>to</span>
+                            <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max" class="form-control" min="0">
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-search"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline btn-block">
+                            <i class="fas fa-times"></i> Clear All
+                        </a>
+                    </div>
+                </form>
+            </aside>
+
+            <div class="marketplace-main">
+                <div class="marketplace-results">
+                    <p>{{ products|length }} product{{ products|length|pluralize }} found</p>
+                </div>
+                {% if products %}
+                <div class="products-grid">
+                    {% for product in products %}
+                        {% include "components/product_card.html" %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>No products found</h3>
+                    <p>Try adjusting your search or filters, or check back later.</p>
+                    <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

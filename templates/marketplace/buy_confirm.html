@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Confirm Purchase - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="form-page">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1><i class="fas fa-shopping-cart"></i> Confirm Purchase</h1>
+                    <p>Review your order before confirming</p>
+                </div>
+                <div class="buy-confirm-product">
+                    <div class="buy-confirm-image">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="product-detail-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="buy-confirm-info">
+                        <h3>{{ product.name }}</h3>
+                        <p class="buy-confirm-price">Rs. {{ product.price|intcomma }}</p>
+                        <p class="buy-confirm-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> {{ product.location_display }}</span>
+                            <span><i class="fas fa-user"></i> {{ product.seller.get_full_name|default:product.seller.username }}</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="buy-confirm-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <p>By confirming, you agree to meet the seller at <strong>{{ product.location_display }}</strong> to complete the transaction. The listed price of <strong>Rs. {{ product.price|intcomma }}</strong> will be locked in for this order.</p>
+                </div>
+                <form method="post" class="buy-confirm-form">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <a href="{% url 'marketplace:product_detail' pk=product.pk %}" class="btn btn-outline">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check-circle"></i> Confirm Purchase - Rs. {{ product.price|intcomma }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

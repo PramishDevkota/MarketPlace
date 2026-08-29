@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        {% if user.is_authenticated and user == profile_user %}
+        <div class="dashboard-shell">
+        {% include "includes/dashboard_sidebar.html" %}
+        <div class="dashboard-main">
+        {% endif %}
+        <div class="profile-page">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        {% if profile_user.profile_image %}
+                        <img src="{{ profile_user.profile_image.url }}" alt="{{ profile_user.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info">
+                        <h1>{{ profile_user.get_full_name|default:profile_user.username }}</h1>
+                        <p class="profile-username">@{{ profile_user.username }}</p>
+                        {% if profile_user.is_seller %}
+                        <span class="badge badge-success"><i class="fas fa-store"></i> Verified Seller</span>
+                        {% else %}
+                        <span class="badge badge-info"><i class="fas fa-user"></i> Buyer</span>
+                        {% endif %}
+                        {% if profile_user == user %}
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="section">
+                <h2 class="section-title">Products by {{ profile_user.get_full_name|default:profile_user.username }}</h2>
+                <div class="products-grid">
+                    {% for product in products %}
+                        {% include "components/product_card.html" %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% if user.is_authenticated and user == profile_user %}
+        </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

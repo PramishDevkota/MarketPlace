@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Become a Seller - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="form-page">
+            <div class="form-card">
+                {% if pending_request %}
+                <div class="form-header">
+                    <h1><i class="fas fa-clock"></i> Seller Request Pending</h1>
+                    <p>Your request to become a seller is awaiting admin approval.</p>
+                </div>
+                <div class="status-card status-pending">
+                    <i class="fas fa-hourglass-half"></i>
+                    <h3>Status: Pending</h3>
+                    <p>Your seller request was submitted on {{ pending_request.created_at|date:"F d, Y" }}.</p>
+                    <p>You will be able to list products once the admin approves your request.</p>
+                </div>
+                {% else %}
+                <div class="form-header">
+                    <h1><i class="fas fa-store"></i> Become a Seller</h1>
+                    <p>Apply to start selling on Islington Marketplace</p>
+                </div>
+                <form method="post" class="form-content">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_business_name">
+                            <i class="fas fa-store"></i> Business/Shop Name
+                        </label>
+                        {{ form.business_name }}
+                        {% if form.business_name.errors %}
+                        <div class="form-error">{{ form.business_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_description">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        {{ form.description }}
+                        <small class="form-help">Tell us what you plan to sell and any relevant details.</small>
+                        {% if form.description.errors %}
+                        <div class="form-error">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_phone_number">
+                            <i class="fas fa-phone"></i> Phone Number
+                        </label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="form-error">{{ form.phone_number.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-actions">
+                        <a href="{% url 'marketplace:home' %}" class="btn btn-outline">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Request
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

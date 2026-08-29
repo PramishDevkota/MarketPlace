@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Write Review - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="form-page">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1><i class="fas fa-star"></i> Write a Review</h1>
+                    <p>Review your purchase of <strong>{{ product.name }}</strong></p>
+                </div>
+                <form method="post" class="form-content">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_rating">
+                            <i class="fas fa-star"></i> Rating
+                        </label>
+                        {{ form.rating }}
+                        {% if form.rating.errors %}
+                        <div class="form-error">{{ form.rating.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_comment">
+                            <i class="fas fa-comment"></i> Your Review
+                        </label>
+                        {{ form.comment }}
+                        {% if form.comment.errors %}
+                        <div class="form-error">{{ form.comment.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-actions">
+                        <a href="{% url 'marketplace:product_detail' pk=product.pk %}" class="btn btn-outline">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Review
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

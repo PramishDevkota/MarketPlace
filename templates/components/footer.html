@@ -1,0 +1,82 @@
+{% load static %}
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="{% url 'marketplace:home' %}" class="footer-logo">
+                    <i class="fas fa-store"></i>
+                    <span>Islington Marketplace</span>
+                </a>
+                <p class="footer-description">
+                    The campus marketplace for Islington College students. Buy, sell, and connect right on campus.
+                </p>
+                <div class="footer-social">
+                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="{% url 'marketplace:home' %}">Home</a></li>
+                    <li><a href="{% url 'marketplace:product_list' %}">Marketplace</a></li>
+                    <li><a href="{% url 'marketplace:about' %}">About</a></li>
+                    <li><a href="{% url 'marketplace:contact' %}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-links">
+                <h4>Account</h4>
+                <ul>
+                    {% if user.is_authenticated %}
+                    {% if user.is_staff or user.is_superuser %}
+                    <li><a href="{% url 'admin:index' %}">Admin Panel</a></li>
+                    {% else %}
+                    <li><a href="{% url 'accounts:profile' pk=user.pk %}">My Profile</a></li>
+                    <li><a href="{% url 'orders:order_list' %}">My Orders</a></li>
+                    <li><a href="{% url 'messaging:conversation_list' %}">Messages</a></li>
+                    {% if not user.is_seller %}
+                    <li><a href="{% url 'accounts:become_seller' %}">Become a Seller</a></li>
+                    {% endif %}
+                    {% endif %}
+                    {% else %}
+                    <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                    <li><a href="{% url 'accounts:register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="footer-contact">
+                <h4>Contact Info</h4>
+                <ul>
+                    <li>
+                        <i class="fas fa-user"></i>
+                        <span>Pramish (Marketplace Owner)</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:pramishpramish1@gmail.com">pramishpramish1@gmail.com</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-phone"></i>
+                        <a href="tel:9745990859">9745990859</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-building"></i>
+                        <span>Sponsored by Islington College</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 Islington Marketplace. All rights reserved.</p>
+            <div class="footer-bottom-links">
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+            </div>
+        </div>
+    </div>
+</footer>

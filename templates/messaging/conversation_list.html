@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Messages - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-comments"></i> Messages</h1>
+        </div>
+
+        {% if conversations %}
+        <div class="conversations-list">
+            {% for conversation in conversations %}
+            <a href="{{ conversation.get_absolute_url }}" class="conversation-item">
+                <div class="conversation-avatar">
+                    {% if conversation.buyer == user %}
+                        {% if conversation.seller.profile_image %}
+                        <img src="{{ conversation.seller.profile_image.url }}" alt="">
+                        {% else %}
+                        <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+                        {% endif %}
+                    {% else %}
+                        {% if conversation.buyer.profile_image %}
+                        <img src="{{ conversation.buyer.profile_image.url }}" alt="">
+                        {% else %}
+                        <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="conversation-info">
+                    <div class="conversation-header">
+                        {% if conversation.buyer == user %}
+                        <strong>{{ conversation.seller.get_full_name|default:conversation.seller.username }}</strong>
+                        {% else %}
+                        <strong>{{ conversation.buyer.get_full_name|default:conversation.buyer.username }}</strong>
+                        {% endif %}
+                        <span class="conversation-date">{{ conversation.updated_at|date:"M d" }}</span>
+                    </div>
+                    <p class="conversation-product">
+                        <i class="fas fa-box"></i> {{ conversation.product.name }}
+                    </p>
+                    {% if conversation.last_message %}
+                    <p class="conversation-preview">{{ conversation.last_message.content|truncatewords:15 }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-comments"></i>
+            <h3>No conversations yet</h3>
+            <p>Start a conversation by messaging a seller from a product page.</p>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Browse Marketplace
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

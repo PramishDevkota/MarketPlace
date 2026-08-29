@@ -1,0 +1,53 @@
+{% load static %}
+<aside class="dashboard-sidebar">
+    <div class="sidebar-user">
+        <div class="sidebar-avatar">
+            {% if user.profile_image %}
+            <img src="{{ user.profile_image.url }}" alt="{{ user.username }}">
+            {% else %}
+            <i class="fas fa-user"></i>
+            {% endif %}
+        </div>
+        <div>
+            <strong>{{ user.get_full_name|default:user.username }}</strong>
+            <span>@{{ user.username }}</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="{% url 'buyer_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'buyer_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        {% if user.is_seller %}
+        <a href="{% url 'seller_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'seller_dashboard' %}active{% endif %}">
+            <i class="fas fa-box"></i> My Products
+        </a>
+        {% endif %}
+        <a href="{% url 'marketplace:create_product' %}" class="sidebar-link">
+            <i class="fas fa-plus-circle"></i> Add Product
+        </a>
+        <a href="{% url 'orders:order_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'orders' %}active{% endif %}">
+            <i class="fas fa-shopping-cart"></i> My Orders
+        </a>
+        <a href="{% url 'orders:order_list' %}" class="sidebar-link">
+            <i class="fas fa-tags"></i> My Sales
+        </a>
+        <a href="{% url 'orders:order_list' %}" class="sidebar-link">
+            <i class="fas fa-paper-plane"></i> My Sent Requests
+        </a>
+        <a href="{% url 'messaging:conversation_list' %}" class="sidebar-link">
+            <i class="fas fa-inbox"></i> My Received Requests
+        </a>
+        <a href="{% url 'messaging:conversation_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'messaging' %}active{% endif %}">
+            <i class="fas fa-comments"></i> Messages
+        </a>
+        <a href="{% url 'accounts:profile_edit' %}" class="sidebar-link">
+            <i class="fas fa-user-edit"></i> Edit Profile
+        </a>
+        <a href="{% url 'accounts:profile_edit' %}" class="sidebar-link">
+            <i class="fas fa-key"></i> Change Password
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="sidebar-link">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</aside>

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ product.name }} - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{% url 'marketplace:home' %}">Home</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'marketplace:product_list' %}">Marketplace</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ product.name }}</span>
+        </div>
+
+        <div class="product-detail">
+            <div class="product-detail-image">
+                {% if product.image %}
+                <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" />
+                <div class="d-flex gap-2 mt-3">
+                    <img src="{{ product.image.url }}" class="img-thumbnail gallery-thumb active" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
+                    {% for gal in product.gallery_images.all %}
+                    <img src="{{ gal.image.url }}" class="img-thumbnail gallery-thumb" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="product-detail-placeholder">
+                    <i class="fas fa-image"></i>
+                    <span>No Image</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="product-detail-info">
+                <span class="product-detail-category">{{ product.category.name|default:"Uncategorized" }}</span>
+                <h1 class="product-detail-title">{{ product.name }}</h1>
+
+                <div class="product-detail-rating">
+                    {% if avg_rating %}
+                    <div class="stars">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= avg_rating %}
+                            <i class="fas fa-star"></i>
+                            {% elif forloop.counter <= avg_rating|add:"0.5" %}
+                            <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                            <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-text">{{ avg_rating }} / 5 ({{ review_count }} review{{ review_count|pluralize }})</span>
+                    {% else %}
+                    <span class="no-rating">No reviews yet</span>
+                    {% endif %}
+                </div>
+
+                <div class="product-detail-price">
+                    Rs. {{ product.price|intcomma }}
+                    {% if product.is_sold_out %}
+                    <span class="badge badge-danger">SOLD OUT</span>
+                    {% endif %}
+                </div>
+
+                <div class="product-detail-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <label>Meetup Location</label>
+                            <span>{{ product.location_display }}</span>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-user"></i>
+                        <div>
+                            <label>Seller</label>
+                            <a href="{% url 'accounts:profile' pk=product.seller.pk %}">
+                                {{ product.seller.get_full_name|default:product.seller.username }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <label>Listed</label>
+                            <span>{{ product.created_at|date:"F d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-detail-actions">
+                    {% if user.is_authenticated %}
+                        {% if user != product.seller %}
+                        <a href="{% url 'messaging:start_conversation' product_id=product.pk %}" class="btn btn-outline">
+                            <i class="fas fa-comments"></i> Message Seller
+                        </a>
+                        {% if product.is_sold_out %}
+                        <button type="button" class="btn btn-primary btn-lg" disabled>
+                            <i class="fas fa-ban"></i> Sold Out
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-outline btn-lg" id="add-to-cart-btn" data-product-id="{{ product.id }}" data-url="{% url 'marketplace:add_to_cart' product_id=product.id %}">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>                        <form method="post" action="{% url 'marketplace:buy_now' pk=product.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shopping-cart"></i> Buy Now
+                            </button>
+                        </form>
+                        {% endif %}
+                        {% else %}
+                        <a href="{% url 'marketplace:edit_product' pk=product.pk %}" class="btn btn-outline">
+                            <i class="fas fa-edit"></i> Edit Product
+                        </a>
+                        {% endif %}
+                    {% else %}
+                        {% if product.is_sold_out %}
+                        <button type="button" class="btn btn-primary btn-lg" disabled>
+                            <i class="fas fa-ban"></i> Sold Out
+                        </button>
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Buy
+                        </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div class="product-detail-description">
+                    <h3>Description</h3>
+                    <p>{{ product.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="reviews-section">
+            <div class="section-header">
+                <h2>Reviews</h2>
+            </div>
+
+            {% if user.is_authenticated and user != product.seller %}
+            <div class="review-form-panel">
+                {% if has_purchased %}
+                <form method="post" action="{% url 'reviews:create_review' product_id=product.pk %}" class="review-form">
+                    {% csrf_token %}
+                    {% if review_form.errors %}
+                    <div class="form-error">{{ review_form.description.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-group">
+                        <label>Your Rating</label>
+                        <div class="star-rating-input">
+                            {% for value in "12345" %}
+                            <input type="radio" name="rating" value="{{ value }}" id="star{{ value }}" {% if review_form.rating.value == value %}checked{% endif %} class="star-radio">
+                            <label for="star{{ value }}" class="star-label"><i class="fas fa-star"></i></label>
+                            {% endfor %}
+                        </div>
+                        {% if review_form.rating.errors %}
+                        <div class="form-error">{{ review_form.rating.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_comment">Your Review</label>
+                        <textarea name="comment" id="id_comment" class="form-control" rows="4" placeholder="Share your experience with this product...">{{ review_form.comment.value|default:"" }}</textarea>
+                        {% if review_form.comment.errors %}
+                        <div class="form-error">{{ review_form.comment.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Review
+                    </button>
+                </form>
+                {% else %}
+                <div class="review-gate">
+                    <i class="fas fa-lock"></i>
+                    <p>You must purchase this product to post a review.</p>
+                    <form method="post" action="" class="review-form" style="pointer-events: none; opacity: 0.5;">
+                        {% csrf_token %}
+                        <div class="star-rating-input">
+                            {% for value in "12345" %}
+                            <span class="star-label"><i class="fas fa-star"></i></span>
+                            {% endfor %}
+                        </div>
+                        <textarea name="comment" class="form-control" rows="4" placeholder="Your review will enable after purchase..." disabled></textarea>
+                        <button type="submit" class="btn btn-primary" disabled>
+                            <i class="fas fa-paper-plane"></i> Submit Review
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if reviews %}
+            <div class="reviews-list">
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-author">
+                            <div class="review-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                <span class="review-date">{{ review.created_at|date:"F d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="review-rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star"></i>
+                                {% else %}
+                                <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if review.comment %}<p class="review-text">{{ review.comment }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state small">
+                <i class="fas fa-comments"></i>
+                <p>No reviews yet. Be the first to review this product!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if recommended_products %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lightbulb"></i> Recommended For You</h2>
+            </div>
+            <div class="product-grid">
+                {% for product in recommended_products %}
+                    {% include "components/product_card.html" %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="cart-modal-overlay" id="cart-modal" style="display: none;">
+    <div class="cart-modal">
+        <div class="cart-modal-header">
+            <h3><i class="fas fa-check-circle"></i> Added to Cart!</h3>
+            <button type="button" class="cart-modal-close" id="cart-modal-close" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-modal-body">
+            <div class="cart-added-item" id="cart-added-item"></div>
+            <div class="cart-subtotal-row">
+                <span>Subtotal</span>
+                <span id="cart-subtotal" class="cart-subtotal-value"></span>
+            </div>
+            <div class="cart-modal-actions">
+                <a href="{% url 'orders:order_list' %}" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart"></i> View Cart / Checkout
+                </a>
+                <button type="button" class="btn btn-outline" id="cart-modal-continue">
+                    Continue Shopping
+                </button>
+            </div>
+            <div class="cart-recommendations">
+                <div class="cart-recommendations-header">
+                    <h4><i class="fas fa-magic"></i> You might also like</h4>
+                </div>
+                <p class="cart-recommendations-msg" id="recommendation-message"></p>
+                <div class="cart-recommendations-grid" id="recommendations-grid"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  function swapMainImage(src) {
+    document.getElementById('mainProductImage').src = src;
+  }
+
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function renderRecommendation(product, addUrl) {
+    var imgHtml = product.image
+      ? '<img src="' + product.image + '" alt="' + product.name + '">'
+      : '<div class="cart-rec-placeholder"><i class="fas fa-image"></i></div>';
+    var recAddUrl = addUrl.replace('/' + document.querySelector('#add-to-cart-btn').getAttribute('data-product-id') + '/', '/' + product.id + '/');
+    return '<div class="cart-rec-card">'
+      + '<div class="cart-rec-image">' + imgHtml + '</div>'
+      + '<div class="cart-rec-info">'
+      +   '<h5>' + product.name + '</h5>'
+      +   '<p class="cart-rec-price">Rs. ' + product.price + '</p>'
+      +   '<button type="button" class="btn btn-sm btn-outline cart-rec-add" data-product-id="' + product.id + '" data-url="' + recAddUrl + '">'
+      +     '<i class="fas fa-cart-plus"></i> Add to Cart'
+      +   '</button>'
+      + '</div>'
+      + '</div>';
+  }
+
+  function addToCart(url, productId) {
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ product_id: productId, quantity: 1 })
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (data.status === 'ok') {
+        var added = data.added_item;
+        document.getElementById('cart-added-item').innerHTML = '<strong>' + added.name + '</strong>'
+          + '<span class="cart-added-qty">x' + added.quantity + '</span>';
+        document.getElementById('cart-subtotal').textContent = 'Rs. ' + data.cart_total;
+        document.getElementById('recommendation-message').textContent = data.recommendation_message || '';
+
+        var grid = document.getElementById('recommendations-grid');
+        grid.innerHTML = '';
+        if (data.recommendations && data.recommendations.length) {
+          data.recommendations.forEach(function (p) {
+            grid.innerHTML += renderRecommendation(p, url);
+          });
+        } else {
+          grid.innerHTML = '<p class="cart-rec-empty">No complementary products found.</p>';
+        }
+
+        document.getElementById('cart-modal').style.display = 'flex';
+
+        var cartCountEl = document.getElementById('cart-count-badge');
+        if (cartCountEl) { cartCountEl.textContent = data.cart_count; cartCountEl.style.display = 'inline-block'; }
+      }
+    })
+    .catch(function () {
+      alert('Could not add the item to your cart. Please try again.');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var addBtn = document.getElementById('add-to-cart-btn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        addToCart(addBtn.getAttribute('data-url'), addBtn.getAttribute('data-product-id'));
+      });
+    }
+
+    var overlay = document.getElementById('cart-modal');
+    var closeBtn = document.getElementById('cart-modal-close');
+    var continueBtn = document.getElementById('cart-modal-continue');
+
+    function closeModal() { if (overlay) { overlay.style.display = 'none'; } }
+    if (closeBtn) { closeBtn.addEventListener('click', closeModal); }
+    if (continueBtn) { continueBtn.addEventListener('click', closeModal); }
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) { closeModal(); }
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var recAddBtn = e.target.closest('.cart-rec-add');
+      if (recAddBtn) {
+        e.preventDefault();
+        addToCart(recAddBtn.getAttribute('data-url'), recAddBtn.getAttribute('data-product-id'));
+      }
+    });
+  });
+</script>
+{% endblock %}

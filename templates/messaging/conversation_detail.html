@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Conversation - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="chat-page">
+            <div class="chat-header">
+                <a href="{% url 'messaging:conversation_list' %}" class="chat-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="chat-header-info">
+                    {% if conversation.buyer == user %}
+                    <h2>{{ conversation.seller.get_full_name|default:conversation.seller.username }}</h2>
+                    <span>Seller</span>
+                    {% else %}
+                    <h2>{{ conversation.buyer.get_full_name|default:conversation.buyer.username }}</h2>
+                    <span>Buyer</span>
+                    {% endif %}
+                </div>
+                <a href="{{ conversation.product.get_absolute_url }}" class="chat-product-link">
+                    <i class="fas fa-box"></i> {{ conversation.product.name }}
+                </a>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                {% for message in messages_list %}
+                <div class="chat-message {% if message.sender == user %}sent{% else %}received{% endif %}">
+                    <div class="message-content">
+                        <p>{{ message.content }}</p>
+                        <span class="message-time">{{ message.created_at|date:"M d, H:i" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <form method="post" class="chat-form">
+                {% csrf_token %}
+                <div class="chat-input-wrapper">
+                    {{ form.content }}
+                    <button type="submit" class="chat-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chatMessages');
+chatMessages.scrollTop = chatMessages.scrollHeight;
+</script>
+{% endblock %}
