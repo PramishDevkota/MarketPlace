@@ -3,6 +3,7 @@ certifi==2026.7.22
 charset-normalizer==3.5.1
 cloudinary==1.46.2
 django-cloudinary-storage==0.3.0
+dj-database-url
 Django==6.1
 django-jazzmin==3.0.5
 idna==3.19
