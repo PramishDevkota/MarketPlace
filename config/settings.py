@@ -91,7 +91,6 @@ STATICFILES_FINDERS = [
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    BASE_DIR / 'marketplace' / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -210,3 +209,5 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://islington-marketplace.vercel.app',
 ]
+
+
