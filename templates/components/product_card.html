@@ -5,9 +5,7 @@
             {% if product.image %}
             <img src="{{ product.image.url }}" alt="{{ product.name }}">
             {% else %}
-            <div class="product-card-placeholder">
-                <i class="fas fa-image"></i>
-            </div>
+            <img src="/static/images/placeholder.png" alt="No image available">
             {% endif %}
             <span class="product-card-category">{{ product.category.name|default:"Uncategorized" }}</span>
             {% if product.is_sold_out %}
