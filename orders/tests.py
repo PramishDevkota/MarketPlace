@@ -303,7 +303,7 @@ class KhaltiPaymentTest(TestCase):
         self.assertEqual(self.order.amount_paid, Decimal('500.00'))
         self.assertEqual(self.order.payment_type, 'SPLIT_INITIAL')
         self.assertTrue(self.order.is_paid)
-        self.assertEqual(self.order.status, 'PAID')
+        self.assertEqual(self.order.status, 'COMPLETED')
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 0)
         self.assertEqual(self.product.status, 'SOLD')

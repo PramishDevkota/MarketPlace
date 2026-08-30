@@ -135,10 +135,17 @@
             </div>
         </div>
 
-        <div class="reviews-section">
+        <div class="reviews-section" id="review-section">
             <div class="section-header">
                 <h2>Reviews</h2>
             </div>
+
+            {% if request.GET.payment == 'success' %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                Thank you! Your payment was successful. Please leave a review for this product using the form below.
+            </div>
+            {% endif %}
 
             {% if user.is_authenticated and user != product.seller %}
                 {% if has_purchased %}

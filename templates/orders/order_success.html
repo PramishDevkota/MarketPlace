@@ -50,11 +50,11 @@
                 </div>
 
                 <div class="form-actions">
+                    <a href="{% url 'marketplace:product_detail' order.product.pk %}#review-section" class="btn btn-primary">
+                        <i class="fas fa-pen"></i> Leave a Review for this Product/Seller
+                    </a>
                     <a href="{% url 'orders:order_detail' pk=order.pk %}" class="btn btn-outline">
                         <i class="fas fa-eye"></i> View Order
-                    </a>
-                    <a href="{% url 'marketplace:home' %}" class="btn btn-primary">
-                        <i class="fas fa-home"></i> Go to Marketplace
                     </a>
                 </div>
             </div>

@@ -200,7 +200,7 @@ def khalti_verify_payment(request):
         order.amount_paid = order.deposit_amount
         order.payment_type = 'SPLIT_INITIAL'
         order.is_paid = True
-        order.status = 'PAID'
+        order.status = 'COMPLETED'
         order.save()
 
         product = order.product
@@ -216,7 +216,7 @@ def khalti_verify_payment(request):
             f'The remaining balance of Rs. {order.remaining_amount} is due when you receive '
             f'the {product.name} on campus.',
         )
-        return redirect('orders:order_success', pk=order.pk)
+        return redirect(f"{reverse('marketplace:product_detail', kwargs={'pk': order.product.pk})}?payment=success#review-section")
 
     messages.error(request, 'Payment was not completed on Khalti. Your stock was not reserved. Please try again.')
     return redirect('orders:checkout', pk=order.pk)

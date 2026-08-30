@@ -171,12 +171,23 @@ class AddReviewViewTest(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_add_review_only_for_completed_order(self):
+    def test_add_review_not_allowed_for_unpaid_order(self):
         self.completed_order.status = 'CONFIRMED'
+        self.completed_order.is_paid = False
         self.completed_order.save()
         self.client.login(username='buyer', password='pass1234')
         response = self.client.get(
             reverse('reviews:add_review', kwargs={'order_id': self.completed_order.pk})
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 302)
+
+    def test_add_review_allowed_when_paid_but_pending_status(self):
+        self.completed_order.status = 'PAID'
+        self.completed_order.is_paid = True
+        self.completed_order.save()
+        self.client.login(username='buyer', password='pass1234')
+        response = self.client.get(
+            reverse('reviews:add_review', kwargs={'order_id': self.completed_order.pk})
+        )
+        self.assertEqual(response.status_code, 200)
 
