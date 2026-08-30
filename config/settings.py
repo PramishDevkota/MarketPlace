@@ -2,10 +2,10 @@
 Django settings for Islington Marketplace.
 """
 
+import os
 from pathlib import Path
 from decouple import config
 import dj_database_url
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,6 +14,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-vx!0!*p&z$fawjgyd@r-v
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['.vercel.app', '127.0.0.1', 'localhost']
+
 INSTALLED_APPS = [
     'jazzmin',
     'django.contrib.admin',
@@ -35,7 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise must remain second
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -83,18 +84,20 @@ TIME_ZONE = 'Asia/Kathmandu'
 USE_I18N = True
 USE_TZ = True
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
-
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -104,6 +107,7 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
 
+# Unified Django 4.2+ Storage Backend
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
@@ -206,9 +210,8 @@ JAZZMIN_UI_TWEAKS = {
         'success': 'btn-success',
     },
 }
+
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://islington-marketplace.vercel.app',
 ]
-
-
