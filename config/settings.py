@@ -91,6 +91,7 @@ STATICFILES_FINDERS = [
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
+    BASE_DIR / 'marketplace' / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
