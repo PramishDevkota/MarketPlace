@@ -6,6 +6,7 @@ django-cloudinary-storage==0.3.0
 dj-database-url
 Django==6.1
 django-jazzmin==3.0.5
+gunicorn
 idna==3.19
 pillow==12.3.0
 psycopg2-binary==2.9.11
