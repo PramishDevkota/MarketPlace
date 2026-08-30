@@ -19,6 +19,7 @@ wheels/
 .installed.cfg
 *.egg
 .env
+venv/
 db.sqlite3
 media/
 staticfiles/

@@ -19,3 +19,5 @@ application = get_wsgi_application()
 # Wrap WSGI application with WhiteNoise for Vercel
 base_dir = Path(__file__).resolve().parent.parent
 application = WhiteNoise(application, root=base_dir / 'staticfiles')
+
+app = application
