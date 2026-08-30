@@ -206,8 +206,8 @@ def khalti_verify_payment(request):
         product = order.product
         product.stock -= order.quantity
         if product.stock <= 0:
+            product.stock = 0
             product.is_available = False
-            product.status = 'SOLD'
         product.save()
 
         messages.success(

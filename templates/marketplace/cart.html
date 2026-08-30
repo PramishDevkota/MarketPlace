@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}My Cart - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="container">
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-cart"></i> My Cart</h1>
+            <p>Review the items in your cart. Open a product for details or buy it right from here.</p>
+        </div>
+
+        {% if items %}
+        <div class="orders-list">
+            {% for item in items %}
+            <div class="order-card" id="cart-item-{{ item.pk }}">
+                <div class="order-card-image">
+                    {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                    <div class="order-card-placeholder">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="order-card-info" style="flex: 1;">
+                    <h3>
+                        <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                    </h3>
+                    <p class="order-card-price">Rs. {{ item.product.price|intcomma }}</p>
+                    <p class="order-card-meta">
+                        <span><i class="fas fa-map-marker-alt"></i> {{ item.product.location_display }}</span>
+                        <span><i class="fas fa-user"></i> {{ item.product.seller.get_full_name|default:item.product.seller.username }}</span>
+                        {% if item.product.stock <= 0 %}
+                        <span class="badge badge-danger">Sold Out</span>
+                        {% endif %}
+                    </p>
+                    <div class="cart-card-actions">
+                        <form method="post" action="{% url 'marketplace:update_cart_item' item_id=item.pk %}" class="cart-qty-form">
+                            {% csrf_token %}
+                            <div class="cart-qty-group">
+                                <label for="quantity-{{ item.pk }}">Qty</label>
+                                <input type="number" id="quantity-{{ item.pk }}" name="quantity"
+                                       min="1" max="{{ item.product.stock }}" value="{{ item.quantity }}"
+                                       class="form-control" style="width: 70px; display: inline-block;">
+                                <button type="submit" class="btn btn-sm btn-outline">
+                                    <i class="fas fa-sync-alt"></i> Update
+                                </button>
+                            </div>
+                        </form>
+                        <form method="post" action="{% url 'marketplace:remove_cart_item' item_id=item.pk %}" class="cart-remove-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </form>
+                        <a href="{{ item.product.get_absolute_url }}" class="btn btn-sm btn-outline">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'marketplace:buy_now' pk=item.product.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-credit-card"></i> Buy Now
+                        </a>
+                    </div>
+                    <p class="cart-card-subtotal">Subtotal: <strong>Rs. {{ item.subtotal|intcomma }}</strong></p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if cart %}
+        <div class="cart-summary">
+            <div class="cart-summary-total">
+                <span>Total ({{ cart.total_items }} item{{ cart.total_items|pluralize }})</span>
+                <strong>Rs. {{ cart.total_price|intcomma }}</strong>
+            </div>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Continue Shopping
+            </a>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Your cart is empty</h3>
+            <p>Browse the marketplace and add products to your cart.</p>
+            <a href="{% url 'marketplace:product_list' %}" class="btn btn-primary">
+                <i class="fas fa-shopping-bag"></i> Browse Marketplace
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

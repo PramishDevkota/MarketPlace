@@ -1606,6 +1606,72 @@ textarea.form-control {
     color: var(--text-lighter);
 }
 
+/* Cart */
+.cart-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.cart-qty-form,
+.cart-remove-form {
+    margin: 0;
+    display: inline-block;
+}
+
+.cart-qty-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cart-qty-group label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.cart-card-subtotal {
+    margin-top: 10px;
+    color: var(--text-light);
+}
+
+.cart-card-subtotal strong {
+    color: var(--text);
+}
+
+.cart-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 20px 24px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.cart-summary-total {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cart-summary-total span {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.cart-summary-total strong {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
 /* Order Detail */
 .order-detail {
     background: var(--bg-white);

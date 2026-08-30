@@ -57,7 +57,9 @@
 
                 <div class="product-detail-price">
                     Rs. {{ product.price|intcomma }}
-                    {% if product.is_sold_out %}
+                    {% if product.stock == 0 %}
+                    <span class="badge badge-danger">Out of Stock</span>
+                    {% elif product.is_sold_out %}
                     <span class="badge badge-danger">SOLD OUT</span>
                     {% endif %}
                 </div>
@@ -139,8 +141,8 @@
             </div>
 
             {% if user.is_authenticated and user != product.seller %}
-            <div class="review-form-panel">
                 {% if has_purchased %}
+                <div class="review-form-panel">
                 <form method="post" action="{% url 'reviews:create_review' product_id=product.pk %}" class="review-form">
                     {% csrf_token %}
                     {% if review_form.errors %}
@@ -169,25 +171,13 @@
                         <i class="fas fa-paper-plane"></i> Submit Review
                     </button>
                 </form>
+                </div>
                 {% else %}
                 <div class="review-gate">
                     <i class="fas fa-lock"></i>
                     <p>You must purchase this product to post a review.</p>
-                    <form method="post" action="" class="review-form" style="pointer-events: none; opacity: 0.5;">
-                        {% csrf_token %}
-                        <div class="star-rating-input">
-                            {% for value in "12345" %}
-                            <span class="star-label"><i class="fas fa-star"></i></span>
-                            {% endfor %}
-                        </div>
-                        <textarea name="comment" class="form-control" rows="4" placeholder="Your review will enable after purchase..." disabled></textarea>
-                        <button type="submit" class="btn btn-primary" disabled>
-                            <i class="fas fa-paper-plane"></i> Submit Review
-                        </button>
-                    </form>
                 </div>
                 {% endif %}
-            </div>
             {% endif %}
 
             {% if reviews %}
@@ -256,8 +246,8 @@
                 <span id="cart-subtotal" class="cart-subtotal-value"></span>
             </div>
             <div class="cart-modal-actions">
-                <a href="{% url 'orders:order_list' %}" class="btn btn-primary">
-                    <i class="fas fa-shopping-cart"></i> View Cart / Checkout
+                <a href="{% url 'marketplace:cart' %}" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart"></i> View Cart
                 </a>
                 <button type="button" class="btn btn-outline" id="cart-modal-continue">
                     Continue Shopping

@@ -95,7 +95,7 @@ def product_detail_view(request, pk):
             buyer=request.user,
             product=product,
         )
-        has_purchased = user_orders.filter(status='COMPLETED').exists()
+        has_purchased = user_orders.filter(is_paid=True).exists()
         if has_purchased and request.user != product.seller:
             from reviews.forms import ReviewForm
             from reviews.models import Review
@@ -321,6 +321,87 @@ def add_to_cart(request, product_id):
         'recommendations': recommended_products,
         'recommendation_message': addons['message'],
     })
+
+
+def _get_or_create_cart(request):
+    if request.user.is_authenticated:
+        return Cart.objects.get_or_create(user=request.user)[0]
+    session_key = request.session.session_key
+    if not session_key:
+        request.session.save()
+        session_key = request.session.session_key
+    return Cart.objects.get_or_create(session_key=session_key)[0]
+
+
+def cart_view(request):
+    """Display the user's cart contents with per-item purchase links."""
+    cart = None
+    items = []
+    if request.user.is_authenticated:
+        cart = Cart.objects.filter(user=request.user).first()
+    else:
+        session_key = request.session.session_key
+        if session_key:
+            cart = Cart.objects.filter(session_key=session_key).first()
+
+    if cart:
+        items = cart.items.select_related('product', 'product__seller', 'product__category').all()
+
+    context = {
+        'cart': cart,
+        'items': items,
+    }
+    return render(request, 'marketplace/cart.html', context)
+
+
+@require_POST
+def update_cart_item_view(request, item_id):
+    cart = _get_or_create_cart(request)
+    item = get_object_or_404(CartItem, pk=item_id, cart=cart)
+
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (TypeError, ValueError):
+        quantity = item.quantity
+    if quantity < 1:
+        quantity = 1
+
+    product = item.product
+    if quantity > product.stock:
+        messages.error(request, f'Only {product.stock} unit(s) available for "{product.name}".')
+        return redirect('marketplace:cart')
+
+    item.quantity = quantity
+    item.save()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax'):
+        return JsonResponse({
+            'status': 'ok',
+            'quantity': item.quantity,
+            'subtotal': str(item.subtotal),
+            'cart_total': str(cart.total_price),
+            'cart_count': cart.items.aggregate(total=Sum('quantity'))['total'] or 0,
+        })
+    return redirect('marketplace:cart')
+
+
+@require_POST
+def remove_cart_item_view(request, item_id):
+    cart = _get_or_create_cart(request)
+    item = get_object_or_404(CartItem, pk=item_id, cart=cart)
+    product_name = item.product.name
+    item.delete()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.GET.get('ajax'):
+        return JsonResponse({
+            'status': 'ok',
+            'removed': True,
+            'product_name': product_name,
+            'cart_total': str(cart.total_price),
+            'cart_count': cart.items.aggregate(total=Sum('quantity'))['total'] or 0,
+        })
+    messages.success(request, f'Removed "{product_name}" from your cart.')
+    return redirect('marketplace:cart')
 
 
 @login_required
