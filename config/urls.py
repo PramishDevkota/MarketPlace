@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from marketplace.views import seller_dashboard_view, buyer_dashboard_view
@@ -15,6 +16,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     path('messages/', include('messaging.urls')),
     path('reviews/', include('reviews.urls')),
+    path('favicon.ico', RedirectView.as_view(url='/static/images/favicon.ico')),
 ]
 
 if settings.DEBUG:

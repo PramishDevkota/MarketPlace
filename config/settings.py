@@ -14,6 +14,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
+    'common',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -82,6 +83,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -196,3 +199,7 @@ JAZZMIN_UI_TWEAKS = {
         'success': 'btn-success',
     },
 }
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://islington-marketplace.vercel.app',
+]
