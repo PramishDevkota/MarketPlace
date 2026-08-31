@@ -568,10 +568,11 @@ def contact_view(request):
 
 
 def ai_product_finder_view(request):
-    """Render the AI relational product finder.
+    """Render the AI Campus Advisor.
 
-    Accepts an optional `query` and `max_budget` submitted via GET, derives
-    personalised recommendations, and renders them as match-percentage cards.
+    Accepts a natural-language ``query`` and optional ``max_budget`` via GET.
+    Parses the scenario into structured intent, scores inventory, generates
+    AI reasoning tags, and renders an advisor-style conversational UI.
     """
     query = request.GET.get('query', '').strip()
     max_budget_raw = request.GET.get('max_budget', '').strip()
@@ -584,6 +585,8 @@ def ai_product_finder_view(request):
         max_budget = None
 
     recommendations = None
+    advisor_summary = ''
+    intent = {}
     if query:
         user = request.user
         recommendations = get_personalized_recommendations(
@@ -591,10 +594,15 @@ def ai_product_finder_view(request):
             max_budget=max_budget,
             user=user,
         )
+        if recommendations:
+            intent = recommendations[0].get('intent', {})
+            advisor_summary = intent.get('advisor_summary', '')
 
     context = {
         'query': query,
         'max_budget': max_budget,
         'recommendations': recommendations,
+        'advisor_summary': advisor_summary,
+        'intent': intent,
     }
     return render(request, 'marketplace/ai_finder.html', context)

@@ -1,85 +1,148 @@
 {% extends "base.html" %}
 {% load static humanize currency_tags %}
 
-{% block title %}AI Product Finder - Islington Marketplace{% endblock %}
+{% block title %}Campus Advisor - Islington Marketplace{% endblock %}
 
 {% block content %}
 <div class="page-container">
     <div class="container">
-        <div class="marketplace-header">
-            <h1><i class="fas fa-magic"></i> AI Product Finder</h1>
-            <p>Describe what you're looking for and let AI find related finds</p>
+
+        <div class="advisor-header">
+            <div class="advisor-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="advisor-header-text">
+                <h1>Campus Advisor</h1>
+                <p>Tell me your situation and I will find the best products for you on campus.</p>
+            </div>
         </div>
 
-        <div class="ai-finder-search">
-            <form method="get" class="filter-form">
-                <div class="filter-section">
-                    <h3><i class="fas fa-search"></i> What are you looking for?</h3>
-                    <input type="text" name="query" value="{{ query }}" placeholder="e.g. laptop, headphone, books..." class="form-control" required>
+        <div class="advisor-search-card">
+            <form method="get" class="advisor-form">
+                <div class="advisor-preset-pills">
+                    <button type="button" class="preset-pill" data-prompt="Books for my module">
+                        <i class="fas fa-graduation-cap"></i> Books for my module
+                    </button>
+                    <button type="button" class="preset-pill" data-prompt="First-year essentials under Rs. 2000">
+                        <i class="fas fa-briefcase"></i> First-year essentials under Rs. 2,000
+                    </button>
+                    <button type="button" class="preset-pill" data-prompt="Hardware for upcoming Hackathon">
+                        <i class="fas fa-bolt"></i> Hardware for upcoming Hackathon
+                    </button>
                 </div>
-                <div class="filter-section">
-                    <h3><span class="currency-badge">Rs.</span> Max Budget (Optional)</h3>
-                    <div class="price-range-inputs">
-                        <input type="number" name="max_budget" value="{{ max_budget }}" placeholder="Max price in Rs." class="form-control" min="0">
+                <div class="advisor-input-row">
+                    <div class="advisor-input-wrapper">
+                        <i class="fas fa-comment-dots advisor-input-icon"></i>
+                        <input
+                            type="text"
+                            name="query"
+                            id="advisor-query"
+                            value="{{ query }}"
+                            placeholder="e.g. I am starting BSc Computing Year 1 and have Rs. 5000 budget..."
+                            class="form-control advisor-input"
+                        >
                     </div>
-                </div>
-                <div class="filter-actions">
-                    <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-wand-magic-sparkles"></i> Find Products
+                    <button type="submit" class="btn btn-primary advisor-submit-btn">
+                        <i class="fas fa-wand-magic-sparkles"></i> Ask Advisor
                     </button>
                 </div>
             </form>
         </div>
 
         {% if recommendations is not None %}
-        <div class="marketplace-results">
-            <p>{{ recommendations|length }} match{{ recommendations|length|pluralize }} found for "{{ query }}"{% if max_budget %} under Rs. {{ max_budget|intcomma }}{% endif %}</p>
+
+        <div class="advisor-conversation">
+            <div class="advisor-bubble advisor-bubble--user">
+                <div class="advisor-bubble-label"><i class="fas fa-user-graduate"></i> You asked</div>
+                <p>"{{ query }}"{% if max_budget %} <span class="advisor-budget-tag">Budget: Rs. {{ max_budget|intcomma }}</span>{% endif %}</p>
+            </div>
+
+            {% if advisor_summary %}
+            <div class="advisor-bubble advisor-bubble--ai">
+                <div class="advisor-bubble-label"><i class="fas fa-robot"></i> Campus Advisor</div>
+                <p>{{ advisor_summary }}</p>
+            </div>
+            {% endif %}
         </div>
 
         {% if recommendations %}
-        <div class="products-grid ai-finder-grid">
+        <div class="advisor-results-header">
+            <h2><i class="fas fa-lightbulb"></i> Recommended for you</h2>
+            <span class="advisor-result-count">{{ recommendations|length }} product{{ recommendations|length|pluralize }}</span>
+        </div>
+
+        <div class="advisor-results-list">
             {% for item in recommendations %}
-            <div class="product-card ai-finder-card">
-                <span class="badge bg-success match-badge">{{ item.match_percentage }}% Match</span>
-                <a href="{{ item.product.get_absolute_url }}" class="product-card-link">
-                    <div class="product-card-image">
+            <div class="advisor-card">
+                <div class="advisor-card-image">
+                    <a href="{{ item.product.get_absolute_url }}">
                         {% if item.product.image %}
                         <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
                         {% else %}
-                        <div class="product-card-placeholder">
+                        <div class="advisor-card-placeholder">
                             <i class="fas fa-image"></i>
                         </div>
                         {% endif %}
-                        <span class="product-card-category">{{ item.product.category.name|default:"Uncategorized" }}</span>
-                    </div>
-                    <div class="product-card-body">
-                        <h3 class="product-card-title">{{ item.product.name }}</h3>
-                        <p class="product-card-price">{{ item.product.price|npr }}</p>
-                        <div class="product-card-meta">
-                            {% if item.product.is_available %}
-                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> In Stock</span>
-                            {% else %}
-                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Out of Stock</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-                <div class="ai-finder-actions">
-                    <a href="{{ item.product.get_absolute_url }}" class="btn btn-primary btn-block">
-                        <i class="fas fa-eye"></i> View Details
                     </a>
+                    <span class="advisor-card-match">{{ item.match_percentage }}% match</span>
+                </div>
+                <div class="advisor-card-body">
+                    <div class="advisor-card-top">
+                        <span class="advisor-card-category">{{ item.product.category.name|default:"General" }}</span>
+                        {% if item.product.module_code %}
+                        <span class="advisor-card-module">{{ item.product.module_code }}</span>
+                        {% endif %}
+                    </div>
+                    <h3 class="advisor-card-title">
+                        <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
+                    </h3>
+                    <p class="advisor-card-price">{{ item.product.price|npr }}</p>
+
+                    {% if item.ai_reasoning %}
+                    <div class="advisor-card-reasoning">
+                        <i class="fas fa-sparkles"></i>
+                        <span>{{ item.ai_reasoning }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="advisor-card-meta">
+                        {% if item.product.stock > 0 %}
+                        <span class="advisor-meta-item"><i class="fas fa-box-open"></i> {{ item.product.stock }} in stock</span>
+                        {% else %}
+                        <span class="advisor-meta-item advisor-meta-sold-out"><i class="fas fa-times-circle"></i> Sold out</span>
+                        {% endif %}
+                        <span class="advisor-meta-item"><i class="fas fa-map-marker-alt"></i> {{ item.product.location_display }}</span>
+                        <span class="advisor-meta-item"><i class="fas fa-book"></i> {{ item.product.programme_display }}</span>
+                    </div>
+
+                    <div class="advisor-card-actions">
+                        <a href="{{ item.product.get_absolute_url }}" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="empty-state">
-            <i class="fas fa-search"></i>
-            <h3>No matches found</h3>
-            <p>Try a different query or remove the budget cap.</p>
+        <div class="advisor-empty">
+            <div class="advisor-empty-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3>No products matched your scenario</h3>
+            <p>Try rephrasing your request, adjusting your budget, or removing specific filters.</p>
         </div>
         {% endif %}
         {% endif %}
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.preset-pill').forEach(function(pill) {
+    pill.addEventListener('click', function() {
+        document.getElementById('advisor-query').value = this.getAttribute('data-prompt');
+        document.getElementById('advisor-query').focus();
+    });
+});
+</script>
 {% endblock %}

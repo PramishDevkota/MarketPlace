@@ -1,13 +1,14 @@
-"""AI-powered relational product finder.
+"""AI-powered Campus Advisor — context-aware product finder.
 
-Uses Google's Gemini model to parse a free-text user query into a primary
-category and a set of complementary/related keywords, then matches those
-against active inventory to produce a relevance score (0% - 100%) for each
-product.
+Uses Google's Gemini model to parse a natural-language student scenario
+(e.g. "I am starting BSc Computing Year 1 and have Rs. 5000 budget") into
+structured intent, then matches against active inventory and generates a
+short AI reasoning tag for every recommended product.
 """
 
 import json
 import logging
+import re
 from decimal import Decimal
 
 from django.conf import settings
@@ -17,42 +18,99 @@ from .models import Product
 
 logger = logging.getLogger(__name__)
 
-GEMINI_MODEL = 'gemini-2.5-flash'
+GEMINI_MODEL = 'gemini-3.6-flash'
 
-_PROMPT = (
-    'You are a helpful shopping assistant for an online marketplace.\n'
-    'Parse the following user product query into a primary category and a list '
-    'of related complementary keywords (e.g. accessories, add-ons or products '
-    'people typically buy together with the primary item).\n'
+_PROGRAMME_LABELS = dict(Product.PROGRAMME_CHOICES)
+
+ADVISOR_PROMPT = (
+    'You are a helpful campus shopping advisor for a student marketplace.\n'
+    'Parse the following natural-language student scenario into structured '
+    'search intent. Extract as much detail as possible:\n'
+    '- primary: the main product category or keyword the student needs\n'
+    '- related_keywords: 4-6 complementary or related keywords\n'
+    '- programme: one of BSC_COMPUTING, BSC_NETWORKING, BSC_MULTIMEDIA, '
+    'BBA, OTHER, or null if not mentioned\n'
+    '- module_code: e.g. "CS4001" if mentioned, otherwise null\n'
+    '- max_budget: the maximum price in NPR if stated, otherwise null\n'
+    '- condition: "new", "used", or null if not specified\n'
+    '- urgency: any time constraint mentioned (e.g. "this week", "today"), '
+    'otherwise null\n\n'
     'Respond with ONLY a JSON object in this exact shape:\n'
-    '{"primary": "<primary category keyword>", '
-    '"related_keywords": ["<keyword 1>", "<keyword 2>"]}\n'
-    'Include 4 to 6 related keywords that would make useful relational finds.\n\n'
-    'User query: {query}'
+    '{\n'
+    '  "primary": "<primary keyword>",\n'
+    '  "related_keywords": ["<kw1>", "<kw2>", ...],\n'
+    '  "programme": "<PROG_CODE or null>",\n'
+    '  "module_code": "<CODE or null>",\n'
+    '  "max_budget": <number or null>,\n'
+    '  "condition": "<new/used/null>",\n'
+    '  "urgency": "<text or null>",\n'
+    '  "advisor_summary": "<one-sentence friendly summary of what the student needs>"\n'
+    '}\n\n'
+    'Student scenario: {query}'
+)
+
+_REASONING_PROMPT = (
+    'You are a campus shopping advisor. For each product listed below, write '
+    'a SHORT reasoning tag (max 15 words) explaining WHY it fits the student\'s '
+    'scenario. Be specific — reference budget, programme, module, or use-case '
+    'when possible.\n\n'
+    'Student scenario: {query}\n\n'
+    'Products:\n{product_list}\n\n'
+    'Respond with ONLY a JSON array of strings, one per product, in the same '
+    'order:\n'
+    '["<reasoning 1>", "<reasoning 2>", ...]'
 )
 
 
-def _call_gemini(query):
-    """Call Gemini to parse the query, returning a dict with key handling."""
+def _get_genai_model():
+    """Return a configured Gemini model instance, or None."""
     api_key = getattr(settings, 'GEMINI_API_KEY', '')
     if not api_key:
-        logger.info('No GEMINI_API_KEY configured; falling back to keyword matching.')
         return None
-
     try:
         import google.generativeai as genai
-
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = model.generate_content(_PROMPT.format(query=query))
-        text = response.text.strip()
-        text = text[text.index('{'):text.rindex('}') + 1]
-        data = json.loads(text)
+        return genai.GenerativeModel(GEMINI_MODEL)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('Could not initialise Gemini: %s', exc)
+        return None
+
+
+def _extract_json(text):
+    """Extract and parse the first JSON object or array from *text*."""
+    text = text.strip()
+    start = text.find('{')
+    end = text.rfind('}')
+    if start != -1 and end > start:
+        return json.loads(text[start:end + 1])
+    start = text.find('[')
+    end = text.rfind(']')
+    if start != -1 and end > start:
+        return json.loads(text[start:end + 1])
+    return None
+
+
+def _call_gemini(query):
+    """Call Gemini to parse the query into structured intent."""
+    model = _get_genai_model()
+    if model is None:
+        return None
+    try:
+        response = model.generate_content(ADVISOR_PROMPT.format(query=query))
+        data = _extract_json(response.text)
+        if not data or not isinstance(data, dict):
+            return None
         return {
             'primary': str(data.get('primary', query)).strip(),
             'related_keywords': [
                 str(k).strip() for k in data.get('related_keywords', []) if k
             ],
+            'programme': data.get('programme'),
+            'module_code': data.get('module_code'),
+            'max_budget': data.get('max_budget'),
+            'condition': data.get('condition'),
+            'urgency': data.get('urgency'),
+            'advisor_summary': str(data.get('advisor_summary', '')).strip(),
         }
     except Exception as exc:  # noqa: BLE001 - degrade gracefully
         logger.warning('Gemini parsing failed (%s); using fallback.', exc)
@@ -60,26 +118,54 @@ def _call_gemini(query):
 
 
 def _fallback_parse(query):
-    """Simple local fallback parse when Gemini is unavailable."""
+    """Local fallback that extracts structured intent without Gemini."""
+    lowered = query.lower()
     related = {
         'laptop': ['laptop bag', 'laptop stand', 'mouse', 'sleeve', 'charger'],
         'phone': ['phone case', 'screen protector', 'charger', 'earphones'],
         'headphone': ['earbuds', 'audio jack', 'headphone stand', 'case'],
         'keyboard': ['mouse', 'wrist rest', 'keyboard cover', 'usb hub'],
     }
-    lowered = query.lower()
     primary = query.strip()
+    related_kw = []
     for key, keywords in related.items():
         if key in lowered:
             primary = key
-            return {'primary': primary, 'related_keywords': keywords}
-    return {'primary': primary, 'related_keywords': []}
+            related_kw = keywords
+            break
+
+    programme = None
+    for code, label in _PROGRAMME_LABELS.items():
+        if label.lower() in lowered or code.lower().replace('_', ' ') in lowered:
+            programme = code
+            break
+
+    module_code = None
+    m = re.search(r'\b([A-Z]{2,4}\d{3,4})\b', query, re.IGNORECASE)
+    if m:
+        module_code = m.group(1).upper()
+
+    budget = None
+    bm = re.search(r'(?:rs\.?|npr|budget)\s*[:=]?\s*(\d[\d,]*)', lowered)
+    if bm:
+        budget = int(bm.group(1).replace(',', ''))
+
+    return {
+        'primary': primary,
+        'related_keywords': related_kw,
+        'programme': programme,
+        'module_code': module_code,
+        'max_budget': budget,
+        'condition': None,
+        'urgency': None,
+        'advisor_summary': '',
+    }
 
 
 def parse_query(query):
-    """Parse a user query into primary + related keywords."""
+    """Parse a student scenario into structured intent dict."""
     if not query:
-        return {'primary': '', 'related_keywords': []}
+        return {'primary': '', 'related_keywords': [], 'advisor_summary': ''}
     parsed = _call_gemini(query)
     if parsed:
         return parsed
@@ -118,17 +204,38 @@ def _purchased_keywords(user):
     return set(keywords)
 
 
-def compute_match_percentage(product, primary, related_keywords, max_budget=None, user=None):
-    """Compute a 0-100 relevance match percentage for a single product."""
+def compute_match_percentage(product, primary, related_keywords, max_budget=None,
+                              user=None, programme=None, module_code=None):
+    """Compute a 0-100 relevance match percentage for a single product.
+
+    Incorporates primary keyword, related keywords, budget, programme,
+    module code, and user purchase history into a weighted score.
+    """
     score = 0.0
-    total_weight = 5 + len(related_keywords) if related_keywords else 5
+    base_weight = 5
+    related_weight = len(related_keywords) if related_keywords else 0
+    # Extra weight for structured signals
+    programme_weight = 3 if programme else 0
+    module_weight = 3 if module_code else 0
+    total_weight = base_weight + related_weight + programme_weight + module_weight
+
+    if total_weight == 0:
+        total_weight = 1
 
     if primary and _term_matches(primary, product):
-        score += 5
+        score += base_weight
     if related_keywords:
         for kw in related_keywords:
             if _term_matches(kw, product):
                 score += 1
+
+    # Programme match bonus
+    if programme and product.programme == programme:
+        score += programme_weight
+
+    # Module code match bonus
+    if module_code and product.module_code and module_code.upper() == product.module_code.upper():
+        score += module_weight
 
     if max_budget is not None:
         budget = Decimal(str(max_budget))
@@ -150,11 +257,72 @@ def compute_match_percentage(product, primary, related_keywords, max_budget=None
     return round(percentage, 1)
 
 
+def _generate_reasoning_tags(query, results):
+    """Use Gemini to generate a short AI reasoning tag per product."""
+    if not results:
+        return []
+    model = _get_genai_model()
+    if model is None:
+        # Fallback: build generic reasoning from structured signals
+        return _fallback_reasoning(query, results)
+
+    product_lines = []
+    for i, item in enumerate(results):
+        p = item['product']
+        cat = p.category.name if p.category else 'General'
+        product_lines.append(
+            f'{i + 1}. {p.name} | Rs. {p.price} | {cat} | '
+            f'{p.module_code or "N/A"} | {p.programme or "N/A"}'
+        )
+
+    try:
+        response = model.generate_content(
+            _REASONING_PROMPT.format(
+                query=query,
+                product_list='\n'.join(product_lines),
+            )
+        )
+        tags = _extract_json(response.text)
+        if isinstance(tags, list):
+            cleaned = [str(t).strip() for t in tags if t][:len(results)]
+            # Pad if short
+            while len(cleaned) < len(results):
+                cleaned.append('Good match for your search.')
+            return cleaned
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('Gemini reasoning generation failed (%s).', exc)
+
+    return _fallback_reasoning(query, results)
+
+
+def _fallback_reasoning(query, results):
+    """Build deterministic reasoning tags without Gemini."""
+    tags = []
+    lowered = query.lower()
+    for item in results:
+        p = item['product']
+        reasons = []
+        if p.module_code and p.module_code.lower() in lowered:
+            reasons.append(f'Matches {p.module_code} requirement')
+        if p.category and p.category.name.lower() in lowered:
+            reasons.append(f'In {p.category.name} category')
+        if 'budget' in lowered or 'rs' in lowered:
+            reasons.append(f'At Rs. {p.price}')
+        if not reasons:
+            reasons.append(f'{item["match_percentage"]}% relevance to your search')
+        tags.append('; '.join(reasons[:2]))
+    return tags
+
+
 def get_personalized_recommendations(user_query, max_budget=None, user=None):
     """Return active inventory ranked by relational relevance to the query.
 
+    Parses the student scenario into structured intent, scores products,
+    and generates AI reasoning tags for each recommendation.
+
     Returns a list sorted by match percentage descending:
-    [{"product": <Product>, "match_percentage": 46.7}, ...]
+    [{"product": <Product>, "match_percentage": 46.7,
+      "ai_reasoning": "...", "intent": {...}}, ...]
     """
     if not user_query or not user_query.strip():
         return []
@@ -162,6 +330,17 @@ def get_personalized_recommendations(user_query, max_budget=None, user=None):
     parsed = parse_query(user_query)
     primary = parsed.get('primary', '')
     related_keywords = parsed.get('related_keywords', [])
+
+    # Budget: prefer explicit param, fall back to parsed value
+    effective_budget = max_budget
+    if effective_budget is None and parsed.get('max_budget') is not None:
+        try:
+            effective_budget = float(parsed['max_budget'])
+        except (TypeError, ValueError):
+            effective_budget = None
+
+    programme = parsed.get('programme')
+    module_code = parsed.get('module_code')
 
     products = Product.objects.filter(
         status='APPROVED',
@@ -174,8 +353,10 @@ def get_personalized_recommendations(user_query, max_budget=None, user=None):
             product,
             primary,
             related_keywords,
-            max_budget=max_budget,
+            max_budget=effective_budget,
             user=user,
+            programme=programme,
+            module_code=module_code,
         )
         if percentage > 0:
             results.append({
@@ -184,6 +365,16 @@ def get_personalized_recommendations(user_query, max_budget=None, user=None):
             })
 
     results.sort(key=lambda item: item['match_percentage'], reverse=True)
+
+    # Generate AI reasoning tags
+    tags = _generate_reasoning_tags(user_query, results)
+    for i, item in enumerate(results):
+        item['ai_reasoning'] = tags[i] if i < len(tags) else ''
+
+    # Attach parsed intent so the view/template can display advisor summary
+    for item in results:
+        item['intent'] = parsed
+
     return results
 
 
