@@ -295,6 +295,15 @@ def _generate_reasoning_tags(query, results):
     return _fallback_reasoning(query, results)
 
 
+def get_ai_reasoning_tags(query, results):
+    """Public helper: generate a short AI reasoning tag per result item.
+
+    ``results`` is a list of dicts each containing a ``product`` key (a
+    Product instance). Returns a list of strings aligned to ``results``.
+    """
+    return _generate_reasoning_tags(query, results)
+
+
 def _fallback_reasoning(query, results):
     """Build deterministic reasoning tags without Gemini."""
     tags = []
@@ -309,7 +318,11 @@ def _fallback_reasoning(query, results):
         if 'budget' in lowered or 'rs' in lowered:
             reasons.append(f'At Rs. {p.price}')
         if not reasons:
-            reasons.append(f'{item["match_percentage"]}% relevance to your search')
+            match = item.get('match_percentage')
+            if match is not None:
+                reasons.append(f'{match}% relevance to your search')
+            else:
+                reasons.append('Good match for your search')
         tags.append('; '.join(reasons[:2]))
     return tags
 

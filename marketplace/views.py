@@ -5,10 +5,15 @@ from django.db.models import Q, Sum, Count
 from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+import re
 from .models import Product, Category, Cart, CartItem
 from .forms import ProductForm, ProductImageFormSet
 from .utils import get_recommended_products
-from .ai_recommender import get_personalized_recommendations, recommend_cart_addons
+from .ai_recommender import (
+    recommend_cart_addons,
+    parse_query,
+    get_ai_reasoning_tags,
+)
 from accounts.decorators import admin_users_forbidden
 from orders.models import Order
 
@@ -567,12 +572,122 @@ def contact_view(request):
     return render(request, 'pages/contact.html')
 
 
+_COMMON_FILLER_WORDS = {
+    'i', 'want', 'need', 'some', 'a', 'an', 'for', 'the', 'to', 'of', 'and',
+    'or', 'with', 'my', 'me', 'looking', 'find', 'buy', 'have',
+    'can', 'you', 'help', 'give', 'new', 'used',
+    'product', 'item', 'things', 'stuff', 'campus', 'islington', 'college',
+    'university', 'year', 'semester', 'under', 'around', 'about', 'npr', 'rs',
+    'budget', 'any', 'where', 'how', 'much', 'price',
+}
+
+_SYNONYMS = {
+    'bag': ['bag', 'backpack', 'rucksack', 'bagpack', 'satchel', 'knapsack',
+            'schoolbag', 'laptop bag', 'carry bag'],
+    'notebook': ['notebook', 'notepad', 'note book', 'writing pad',
+                 'exercise book'],
+    'book': ['book', 'textbook', 'novel', 'reading', 'books'],
+    'electronics': ['electronics', 'electronic', 'gadget', 'gadgets',
+                    'device', 'devices', 'tech', 'accessory', 'accessories'],
+    'laptop': ['laptop', 'notebook computer', 'computer'],
+    'pen': ['pen', 'pens', 'stationery'],
+    'charger': ['charger', 'charging cable', 'power adapter'],
+    'headphone': ['headphone', 'headphones', 'earphone', 'earphones',
+                  'earbuds', 'audio'],
+    'keyboard': ['keyboard', 'key board'],
+    'mouse': ['mouse', 'computer mouse'],
+    'phone': ['phone', 'mobile', 'smartphone'],
+    'shoes': ['shoes', 'shoe', 'footwear', 'sneakers'],
+    'shirt': ['shirt', 'shirts', 'tops'],
+}
+
+
+def _extract_core_keywords(query):
+    """Pull meaningful search terms out of a natural-language prompt.
+
+    Converts e.g. "I want some bags" into the key term "bag" (singularised)
+    and drops filler/stop words.
+    """
+    if not query:
+        return []
+    words = re.split(r'[^a-zA-Z0-9]+', query.lower())
+    core = []
+    for word in words:
+        word = word.strip()
+        # Drop plurals ("bags" -> "bag", "notebooks" -> "notebook")
+        if word.endswith('ies') and len(word) > 4:
+            word = word[:-3] + 'y'
+        elif word.endswith('es') and len(word) > 4:
+            word = word[:-2]
+        elif word.endswith('s') and len(word) > 3 and not word.endswith('ss'):
+            word = word[:-1]
+        if word and word not in _COMMON_FILLER_WORDS and len(word) >= 3:
+            if word not in core:
+                core.append(word)
+    return core
+
+
+def _expand_synonyms(keywords):
+    """Return the original keywords plus any synonyms for them."""
+    expanded = list(keywords)
+    for kw in keywords:
+        for base, synonyms in _SYNONYMS.items():
+            if kw == base or kw in synonyms:
+                for syn in synonyms:
+                    if syn not in expanded:
+                        expanded.append(syn)
+    return expanded
+
+
+def _search_products(query):
+    """Match products against a natural-language query across broad fields.
+
+    Builds a multi-field OR query (title, description, category, programme,
+    module code) so both academic ("BSc Computing Year 1 books") and general
+    ("bags", "electronics") searches work.
+    """
+    terms = _extract_core_keywords(query)
+    if not terms:
+        return Product.objects.none()
+
+    expanded = _expand_synonyms(terms)
+
+    q = Q()
+    for term in expanded:
+        q |= (
+            Q(name__icontains=term) |
+            Q(description__icontains=term) |
+            Q(category__name__icontains=term) |
+            Q(programme__icontains=term) |
+            Q(module_code__icontains=term)
+        )
+
+    # Multi-word academic phrases (e.g. "BSc Computing") should also match the
+    # programme / module fields as a unit.
+    lowered = query.lower()
+    for code, label in dict(Product.PROGRAMME_CHOICES).items():
+        if label.lower() in lowered or code.lower().replace('_', ' ') in lowered:
+            q |= Q(programme__icontains=code)
+
+    return Product.objects.filter(
+        q
+    ).filter(
+        status='APPROVED',
+        is_available=True,
+    ).select_related('seller', 'category').distinct()
+
+
 def ai_product_finder_view(request):
     """Render the AI Campus Advisor.
 
     Accepts a natural-language ``query`` and optional ``max_budget`` via GET.
-    Parses the scenario into structured intent, scores inventory, generates
-    AI reasoning tags, and renders an advisor-style conversational UI.
+    Parses the scenario into structured intent, matches against active
+    inventory using a flexible multi-field search, generates AI reasoning
+    tags, and renders an advisor-style conversational UI.
+
+    Handles both academic prompts (e.g. "BSc Computing Year 1 books") and
+    broad general prompts (e.g. "bags", "electronics"). If nothing matches,
+    falls back to the most recent listings as suggested items.
     """
     query = request.GET.get('query', '').strip()
     max_budget_raw = request.GET.get('max_budget', '').strip()
@@ -587,16 +702,55 @@ def ai_product_finder_view(request):
     recommendations = None
     advisor_summary = ''
     intent = {}
+    message = ''
+
     if query:
-        user = request.user
-        recommendations = get_personalized_recommendations(
-            query,
-            max_budget=max_budget,
-            user=user,
-        )
-        if recommendations:
-            intent = recommendations[0].get('intent', {})
-            advisor_summary = intent.get('advisor_summary', '')
+        # Fallback-friendly flexible product search that works for both
+        # academic and broad general queries.
+        products = _search_products(query)
+
+        # Reuse parsed intent to enrich results with AI reasoning whenever
+        # Gemini (or the local fallback) produces structured signals.
+        parsed = parse_query(query)
+        intent = parsed
+        advisor_summary = parsed.get('advisor_summary', '')
+
+        if products.exists():
+            recommendations = []
+            for product in products[:20]:
+                recommendations.append({
+                    'product': product,
+                    'intent': parsed,
+                    'match_percentage': None,
+                })
+            tags = get_ai_reasoning_tags(query, recommendations)
+            for i, item in enumerate(recommendations):
+                item['ai_reasoning'] = tags[i] if i < len(tags) else ''
+        else:
+            # Empty-results fallback: show recent listings instead of a blank page.
+            recent = Product.objects.filter(
+                status='APPROVED',
+                is_available=True,
+            ).select_related('seller', 'category')[:4]
+            recommendations = [
+                {'product': product, 'intent': parsed, 'match_percentage': None}
+                for product in recent
+            ]
+            message = (
+                f"No exact matches found for '{query}', but here are some "
+                "recent listings on campus!"
+            )
+    else:
+        # No query yet: show the most recent listings as a friendly starting point.
+        recent = Product.objects.filter(
+            status='APPROVED',
+            is_available=True,
+        ).select_related('seller', 'category')[:4]
+        recommendations = [
+            {'product': product, 'intent': {}, 'match_percentage': None}
+            for product in recent
+        ]
+        message = 'Try describing what you are looking for, e.g. "bags" or "BSc Computing Year 1 books".'
 
     context = {
         'query': query,
@@ -604,5 +758,6 @@ def ai_product_finder_view(request):
         'recommendations': recommendations,
         'advisor_summary': advisor_summary,
         'intent': intent,
+        'message': message,
     }
     return render(request, 'marketplace/ai_finder.html', context)

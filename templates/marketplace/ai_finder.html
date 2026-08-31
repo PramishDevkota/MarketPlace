@@ -52,15 +52,24 @@
         {% if recommendations is not None %}
 
         <div class="advisor-conversation">
+            {% if query %}
             <div class="advisor-bubble advisor-bubble--user">
                 <div class="advisor-bubble-label"><i class="fas fa-user-graduate"></i> You asked</div>
                 <p>"{{ query }}"{% if max_budget %} <span class="advisor-budget-tag">Budget: Rs. {{ max_budget|intcomma }}</span>{% endif %}</p>
             </div>
+            {% endif %}
 
             {% if advisor_summary %}
             <div class="advisor-bubble advisor-bubble--ai">
                 <div class="advisor-bubble-label"><i class="fas fa-robot"></i> Campus Advisor</div>
                 <p>{{ advisor_summary }}</p>
+            </div>
+            {% endif %}
+
+            {% if message %}
+            <div class="advisor-bubble advisor-bubble--ai">
+                <div class="advisor-bubble-label"><i class="fas fa-robot"></i> Campus Advisor</div>
+                <p>{{ message }}</p>
             </div>
             {% endif %}
         </div>
@@ -84,7 +93,9 @@
                         </div>
                         {% endif %}
                     </a>
+                    {% if item.match_percentage is not None %}
                     <span class="advisor-card-match">{{ item.match_percentage }}% match</span>
+                    {% endif %}
                 </div>
                 <div class="advisor-card-body">
                     <div class="advisor-card-top">
