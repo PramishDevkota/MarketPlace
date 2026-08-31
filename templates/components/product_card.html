@@ -1,4 +1,4 @@
-{% load static humanize %}
+{% load static humanize currency_tags %}
 <div class="product-card">
     <a href="{{ product.get_absolute_url }}" class="product-card-link">
         <div class="product-card-image">
@@ -14,7 +14,13 @@
         </div>
         <div class="product-card-body">
             <h3 class="product-card-title">{{ product.name }}</h3>
-            <p class="product-card-price">Rs. {{ product.price|intcomma }}</p>
+            <p class="product-card-price">{{ product.price|npr }}</p>
+            <div class="product-card-tags">
+                <span class="tag tag-programme"><i class="fas fa-graduation-cap"></i> {{ product.programme_display }}</span>
+                {% if product.module_code %}
+                <span class="tag tag-module"><i class="fas fa-book"></i> {{ product.module_code }}</span>
+                {% endif %}
+            </div>
             <div class="product-card-meta">
                 <span class="product-card-location">
                     <i class="fas fa-map-marker-alt"></i>

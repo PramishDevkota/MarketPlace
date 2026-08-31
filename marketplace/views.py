@@ -37,6 +37,8 @@ def product_list_view(request):
     query = request.GET.get('q', '')
     category_slug = request.GET.get('category', '')
     location = request.GET.get('location', '')
+    programme = request.GET.get('programme', '')
+    module_code = request.GET.get('module_code', '')
     min_price = request.GET.get('min_price', '')
     max_price = request.GET.get('max_price', '')
 
@@ -50,6 +52,10 @@ def product_list_view(request):
         products = products.filter(category__slug=category_slug)
     if location:
         products = products.filter(location=location)
+    if programme:
+        products = products.filter(programme=programme)
+    if module_code:
+        products = products.filter(module_code__iexact=module_code)
     if min_price:
         try:
             products = products.filter(price__gte=float(min_price))
@@ -63,14 +69,18 @@ def product_list_view(request):
 
     categories = Category.objects.filter(is_active=True)
     locations = Product.LOCATION_CHOICES
+    programme_choices = Product.PROGRAMME_CHOICES
 
     context = {
         'products': products,
         'categories': categories,
         'locations': locations,
+        'programme_choices': programme_choices,
         'query': query,
         'selected_category': category_slug,
         'selected_location': location,
+        'selected_programme': programme,
+        'module_code': module_code,
         'min_price': min_price,
         'max_price': max_price,
     }
@@ -239,6 +249,8 @@ def buy_now_view(request, pk):
             product=product,
             price_at_purchase=product.price,
             quantity=quantity,
+            meetup_location=request.POST.get('meetup_location', 'BLOCK_A_HALLWAY'),
+            meetup_time_notes=request.POST.get('meetup_time_notes', ''),
             status='PENDING',
         )
         messages.success(

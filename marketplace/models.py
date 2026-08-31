@@ -45,6 +45,14 @@ class Product(models.Model):
         ('skill_block', 'Skill Block'),
     ]
 
+    PROGRAMME_CHOICES = [
+        ('BSC_COMPUTING', 'BSc (Hons) Computing'),
+        ('BSC_NETWORKING', 'BSc (Hons) Computer Networking & IT Security'),
+        ('BSC_MULTIMEDIA', 'BSc (Hons) Multimedia Technologies'),
+        ('BBA', 'BBA (International Business)'),
+        ('OTHER', 'General Campus / Non-Academic'),
+    ]
+
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='products')
     name = models.CharField(max_length=200)
@@ -52,6 +60,8 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     location = models.CharField(max_length=20, choices=LOCATION_CHOICES)
+    programme = models.CharField(max_length=50, choices=PROGRAMME_CHOICES, default='BSC_COMPUTING')
+    module_code = models.CharField(max_length=20, blank=True, help_text="e.g., CS4001, CS5002, CU4055")
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
     stock = models.PositiveIntegerField(default=1)
     is_available = models.BooleanField(default=True)
@@ -93,6 +103,10 @@ class Product(models.Model):
     @property
     def location_display(self):
         return dict(self.LOCATION_CHOICES).get(self.location, self.location)
+
+    @property
+    def programme_display(self):
+        return dict(self.PROGRAMME_CHOICES).get(self.programme, self.programme)
 
 
 class ProductImage(models.Model):

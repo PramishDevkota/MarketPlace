@@ -19,9 +19,9 @@ class ProductImageInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline]
-    list_display = ['name', 'seller', 'category', 'price', 'location', 'status', 'is_available', 'created_at']
-    list_filter = ['status', 'is_available', 'category', 'location', 'created_at']
-    search_fields = ['name', 'description', 'seller__username']
+    list_display = ['name', 'seller', 'category', 'price', 'location', 'programme', 'module_code', 'status', 'is_available', 'created_at']
+    list_filter = ['status', 'is_available', 'category', 'location', 'programme', 'created_at']
+    search_fields = ['name', 'description', 'seller__username', 'module_code', 'programme']
     ordering = ['-created_at']
     readonly_fields = ['created_at', 'updated_at']
 

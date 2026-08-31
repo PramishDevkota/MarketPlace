@@ -22,6 +22,14 @@ class Order(models.Model):
         ('COMPLETED', 'Split - Balance Paid at Delivery'),
     ]
 
+    MEETUP_LOCATION_CHOICES = [
+        ('BLOCK_A_HALLWAY', 'Block A - Ground Floor Hallway'),
+        ('BLOCK_B_CAFETERIA', 'Block B - Cafeteria'),
+        ('COFFEE_STATION', 'The Coffee Station / Juice Bar'),
+        ('LIBRARY_ENTRANCE', 'Library Entrance'),
+        ('LECTURE_THEATRE_LOUNGE', 'Lecture Theatre Lounge'),
+    ]
+
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders_as_buyer')
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders_as_seller')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
@@ -32,6 +40,8 @@ class Order(models.Model):
     transaction_id = models.CharField(max_length=255, blank=True)
     is_paid = models.BooleanField(default=False)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
+    meetup_location = models.CharField(max_length=50, choices=MEETUP_LOCATION_CHOICES, default='BLOCK_A_HALLWAY')
+    meetup_time_notes = models.CharField(max_length=255, blank=True, help_text="e.g., Between 12:00 PM and 1:00 PM after Lecture")
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -34,6 +34,20 @@ class ProductForm(forms.ModelForm):
         choices=Product.LOCATION_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
+    programme = forms.ChoiceField(
+        choices=Product.PROGRAMME_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        required=True,
+    )
+    module_code = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'e.g., CS4001, CS5002, CU4055',
+        }),
+        help_text="e.g., CS4001, CS5002, CU4055",
+    )
     image = forms.ImageField(
         required=False,
         widget=forms.FileInput(attrs={'class': 'form-control'}),
@@ -41,7 +55,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'category', 'location', 'image']
+        fields = ['name', 'description', 'price', 'category', 'location', 'programme', 'module_code', 'image']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

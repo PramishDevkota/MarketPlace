@@ -25,49 +25,64 @@
                 {% endif %}
             </div>
 
-            <div class="order-detail-content">
-                <div class="order-detail-product">
-                    {% if order.product.image %}
-                    <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
-                    {% else %}
-                    <div class="order-detail-placeholder">
-                        <i class="fas fa-image"></i>
+                <div class="order-detail-content">
+                    <div class="order-detail-product">
+                        {% if order.product.image %}
+                        <img src="{{ order.product.image.url }}" alt="{{ order.product.name }}">
+                        {% else %}
+                        <div class="order-detail-placeholder">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                        <div class="order-detail-product-info">
+                            <h3>{{ order.product.name }}</h3>
+                            <p>{{ order.product.description|truncatewords:20 }}</p>
+                            <a href="{{ order.product.get_absolute_url }}" class="btn btn-outline btn-sm">
+                                <i class="fas fa-eye"></i> View Product
+                            </a>
+                        </div>
                     </div>
-                    {% endif %}
-                    <div class="order-detail-product-info">
-                        <h3>{{ order.product.name }}</h3>
-                        <p>{{ order.product.description|truncatewords:20 }}</p>
-                        <a href="{{ order.product.get_absolute_url }}" class="btn btn-outline btn-sm">
-                            <i class="fas fa-eye"></i> View Product
-                        </a>
+
+                    <div class="order-detail-summary">
+                        <h3>Order Summary</h3>
+                        <div class="summary-row">
+                            <span>Price at Purchase</span>
+                            <span>Rs. {{ order.price_at_purchase|intcomma }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Quantity</span>
+                            <span>{{ order.quantity }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Price</span>
+                            <span>Rs. {{ order.total_price|intcomma }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Status</span>
+                            <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Order Date</span>
+                            <span>{{ order.created_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Last Updated</span>
+                            <span>{{ order.updated_at|date:"F d, Y H:i" }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="order-detail-summary">
-                    <h3>Order Summary</h3>
-                    <div class="summary-row">
-                        <span>Price at Purchase</span>
-                        <span>Rs. {{ order.price_at_purchase|intcomma }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Quantity</span>
-                        <span>{{ order.quantity }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Total Price</span>
-                        <span>Rs. {{ order.total_price|intcomma }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Status</span>
-                        <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Order Date</span>
-                        <span>{{ order.created_at|date:"F d, Y H:i" }}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Last Updated</span>
-                        <span>{{ order.updated_at|date:"F d, Y H:i" }}</span>
+                <div class="campus-handshake-spot">
+                    <div class="handshake-spot-icon"><i class="fas fa-handshake"></i></div>
+                    <div class="handshake-spot-content">
+                        <h3>Campus Handshake Spot</h3>
+                        <p class="handshake-spot-location"><i class="fas fa-map-marker-alt"></i> {{ order.get_meetup_location_display }}</p>
+                        {% if order.meetup_time_notes %}
+                        <p class="handshake-spot-time"><i class="fas fa-clock"></i> {{ order.meetup_time_notes }}</p>
+                        {% else %}
+                        <p class="handshake-spot-time"><i class="fas fa-clock"></i> Time to be agreed with the seller</p>
+                        {% endif %}
+                        <p class="handshake-spot-hint">Meet the seller here to hand over the remaining balance and receive your item. Seller: {{ order.seller.get_full_name|default:order.seller.username }}</p>
                     </div>
                 </div>
             </div>

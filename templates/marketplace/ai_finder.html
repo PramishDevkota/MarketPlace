@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}AI Product Finder - Islington Marketplace{% endblock %}
 
@@ -18,7 +18,7 @@
                     <input type="text" name="query" value="{{ query }}" placeholder="e.g. laptop, headphone, books..." class="form-control" required>
                 </div>
                 <div class="filter-section">
-                    <h3><i class="fas fa-dollar-sign"></i> Max Budget (Optional)</h3>
+                    <h3><span class="currency-badge">Rs.</span> Max Budget (Optional)</h3>
                     <div class="price-range-inputs">
                         <input type="number" name="max_budget" value="{{ max_budget }}" placeholder="Max price in Rs." class="form-control" min="0">
                     </div>
@@ -54,7 +54,7 @@
                     </div>
                     <div class="product-card-body">
                         <h3 class="product-card-title">{{ item.product.name }}</h3>
-                        <p class="product-card-price">Rs. {{ item.product.price|intcomma }}</p>
+                        <p class="product-card-price">{{ item.product.price|npr }}</p>
                         <div class="product-card-meta">
                             {% if item.product.is_available %}
                             <span class="badge badge-success"><i class="fas fa-check-circle"></i> In Stock</span>

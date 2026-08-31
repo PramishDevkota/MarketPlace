@@ -40,7 +40,22 @@
                     </div>
 
                     <div class="filter-section">
-                        <h3><i class="fas fa-dollar-sign"></i> Price Range</h3>
+                        <h3><i class="fas fa-graduation-cap"></i> Programme</h3>
+                        <select name="programme" class="form-control" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">All Programmes</option>
+                            {% for value, label in programme_choices %}
+                            <option value="{{ value }}" {% if selected_programme == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3><i class="fas fa-book"></i> Module Code</h3>
+                        <input type="text" name="module_code" value="{{ module_code }}" placeholder="e.g., CS4001" class="form-control">
+                    </div>
+
+                    <div class="filter-section">
+                        <h3><span class="currency-badge">Rs.</span> Price Range</h3>
                         <div class="price-range-inputs">
                             <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min" class="form-control" min="0">
                             <span>to</span>

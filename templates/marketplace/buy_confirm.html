@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}Confirm Purchase - Islington Marketplace{% endblock %}
 
@@ -24,7 +24,7 @@
                     </div>
                     <div class="buy-confirm-info">
                         <h3>{{ product.name }}</h3>
-                        <p class="buy-confirm-price">Rs. {{ product.price|intcomma }}</p>
+                        <p class="buy-confirm-price">{{ product.price|npr }}</p>
                         <p class="buy-confirm-meta">
                             <span><i class="fas fa-map-marker-alt"></i> {{ product.location_display }}</span>
                             <span><i class="fas fa-user"></i> {{ product.seller.get_full_name|default:product.seller.username }}</span>
@@ -33,7 +33,7 @@
                 </div>
                 <div class="buy-confirm-notice">
                     <i class="fas fa-info-circle"></i>
-                    <p>By confirming, you agree to meet the seller at <strong>{{ product.location_display }}</strong> to complete the transaction. The listed price of <strong>Rs. {{ product.price|intcomma }}</strong> will be locked in for this order.</p>
+                    <p>By confirming, you agree to meet the seller at <strong>{{ product.location_display }}</strong> to complete the transaction. The listed price of <strong>{{ product.price|npr }}</strong> will be locked in for this order.</p>
                 </div>
                 <form method="post" class="buy-confirm-form">
                     {% csrf_token %}
@@ -42,12 +42,28 @@
                         <input type="number" id="quantity" name="quantity" min="1" max="{{ product.stock }}" value="1" class="form-control" style="width: 100px; display: inline-block;">
                         <span class="buy-confirm-qty-note">({{ product.stock }} available)</span>
                     </div>
+                    <div class="form-group">
+                        <label for="meetup_location"><i class="fas fa-handshake"></i> Campus Handshake Spot</label>
+                        <select name="meetup_location" id="meetup_location" class="form-control">
+                            <option value="BLOCK_A_HALLWAY">Block A - Ground Floor Hallway</option>
+                            <option value="BLOCK_B_CAFETERIA">Block B - Cafeteria</option>
+                            <option value="COFFEE_STATION">The Coffee Station / Juice Bar</option>
+                            <option value="LIBRARY_ENTRANCE">Library Entrance</option>
+                            <option value="LECTURE_THEATRE_LOUNGE">Lecture Theatre Lounge</option>
+                        </select>
+                        <small class="form-help">Choose a spot on the Islington College campus for your handshake with the seller.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="meetup_time_notes"><i class="fas fa-clock"></i> Preferred Time Notes</label>
+                        <input type="text" name="meetup_time_notes" id="meetup_time_notes" maxlength="255" placeholder="e.g., Between 12:00 PM and 1:00 PM after Lecture" class="form-control">
+                        <small class="form-help">Optional. e.g., Between 12:00 PM and 1:00 PM after Lecture</small>
+                    </div>
                     <div class="form-actions">
                         <a href="{% url 'marketplace:product_detail' pk=product.pk %}" class="btn btn-outline">
                             <i class="fas fa-arrow-left"></i> Go Back
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-check-circle"></i> Confirm Purchase - Rs. {{ product.price|intcomma }}
+                            <i class="fas fa-check-circle"></i> Confirm Purchase - {{ product.price|npr }}
                         </button>
                     </div>
                 </form>

@@ -326,6 +326,22 @@ textarea.form-control {
     color: #64748b;
 }
 
+.currency-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    min-width: 26px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--primary-light, #eef2ff);
+    color: var(--primary-dark, #312e81);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 /* ---- ALERTS / MESSAGES ---- */
 .messages-container {
     position: fixed;
@@ -3512,4 +3528,96 @@ textarea.form-control {
     display: none;
     margin-left: 4px;
     vertical-align: super;
+}
+
+/* Product card academic tags */
+.product-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tag-programme {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.tag-module {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Campus Handshake Spot badge */
+.campus-handshake-spot {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius);
+    margin-top: 24px;
+}
+
+.campus-handshake-spot .handshake-spot-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 1.3rem;
+}
+
+.campus-handshake-spot .handshake-spot-content {
+    flex: 1;
+}
+
+.campus-handshake-spot h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #166534;
+    margin: 0 0 8px;
+}
+
+.campus-handshake-spot .handshake-spot-location,
+.campus-handshake-spot .handshake-spot-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px;
+    font-weight: 600;
+    color: #14532d;
+}
+
+.campus-handshake-spot .handshake-spot-hint {
+    font-size: 0.82rem;
+    color: #166534;
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+
+.campus-handshake-spot .handshake-spot-location i,
+.campus-handshake-spot .handshake-spot-time i {
+    color: #16a34a;
+}
+
+.campus-handshake-spot.success {
+    margin-top: 0;
+    margin-bottom: 24px;
 }

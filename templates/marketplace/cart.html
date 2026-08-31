@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}My Cart - Islington Marketplace{% endblock %}
 
@@ -28,7 +28,7 @@
                     <h3>
                         <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
                     </h3>
-                    <p class="order-card-price">Rs. {{ item.product.price|intcomma }}</p>
+                    <p class="order-card-price">{{ item.product.price|npr }}</p>
                     <p class="order-card-meta">
                         <span><i class="fas fa-map-marker-alt"></i> {{ item.product.location_display }}</span>
                         <span><i class="fas fa-user"></i> {{ item.product.seller.get_full_name|default:item.product.seller.username }}</span>

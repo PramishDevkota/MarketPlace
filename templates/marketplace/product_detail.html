@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}{{ product.name }} - Islington Marketplace{% endblock %}
 
@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="product-detail-price">
-                    Rs. {{ product.price|intcomma }}
+                    {{ product.price|npr }}
                     {% if product.stock == 0 %}
                     <span class="badge badge-danger">Out of Stock</span>
                     {% elif product.is_sold_out %}

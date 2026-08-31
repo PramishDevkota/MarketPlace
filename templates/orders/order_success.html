@@ -44,6 +44,20 @@
                     </div>
                 </div>
 
+                <div class="campus-handshake-spot success">
+                    <div class="handshake-spot-icon"><i class="fas fa-handshake"></i></div>
+                    <div class="handshake-spot-content">
+                        <h3>Campus Handshake Spot</h3>
+                        <p class="handshake-spot-location"><i class="fas fa-map-marker-alt"></i> {{ order.get_meetup_location_display }}</p>
+                        {% if order.meetup_time_notes %}
+                        <p class="handshake-spot-time"><i class="fas fa-clock"></i> {{ order.meetup_time_notes }}</p>
+                        {% else %}
+                        <p class="handshake-spot-time"><i class="fas fa-clock"></i> Time to be agreed with the seller</p>
+                        {% endif %}
+                        <p class="handshake-spot-hint">Meet the seller here to hand over the remaining balance and receive your item.</p>
+                    </div>
+                </div>
+
                 <div class="buy-confirm-notice">
                     <i class="fas fa-handshake"></i>
                     <p>Your stock is now reserved. Meet the seller at <strong>{{ order.product.location_display }}</strong> and settle the remaining balance of <strong>Rs. {{ order.remaining_amount|floatformat:2 }}</strong> when you receive the product.</p>
