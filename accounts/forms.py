@@ -45,6 +45,8 @@ class UserRegistrationForm(forms.ModelForm):
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
+        if not re.match(r'^[A-Za-z]+$', username):
+            raise forms.ValidationError('Username must contain only letters.')
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('This username is already taken.')
         return username
