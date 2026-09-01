@@ -805,9 +805,14 @@ def propose_trade(request, product_id):
         messages.error(request, 'You need at least one active product listed to propose a trade.')
         return redirect('marketplace:product_detail', pk=requested.pk)
 
-    offered_id = request.POST.get('offered_item')
+    offered_id = (request.POST.get('offered_item') or '').strip()
     message = request.POST.get('message', '').strip()
-    offered = get_object_or_404(Product, pk=offered_id, seller=request.user)
+
+    if not offered_id.isdigit():
+        messages.error(request, 'Please select an item to trade.')
+        return redirect('marketplace:product_detail', pk=requested.pk)
+
+    offered = get_object_or_404(Product, pk=int(offered_id), seller=request.user)
 
     if offered == requested or not active_products.filter(pk=offered.pk).exists():
         messages.error(request, 'Invalid trade item selected.')

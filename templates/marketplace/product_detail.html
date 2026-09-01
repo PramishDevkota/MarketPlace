@@ -286,7 +286,7 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <form method="post" action="{% url 'marketplace:propose_trade' product_id=product.pk %}">
+        <form method="post" action="{% url 'marketplace:propose_trade' product_id=product.pk %}" id="trade-form">
             {% csrf_token %}
             <div class="px-5 py-4">
                 <p class="mb-3 text-sm text-gray-600">
@@ -443,6 +443,17 @@
     if (tradeModal) {
       tradeModal.addEventListener('click', function (e) {
         if (e.target === tradeModal) { closeTradeModal(); }
+      });
+    }
+
+    var tradeForm = document.getElementById('trade-form');
+    if (tradeForm) {
+      tradeForm.addEventListener('submit', function (e) {
+        var selected = tradeForm.querySelector('input[name="offered_item"]:checked');
+        if (!selected) {
+          e.preventDefault();
+          alert('Please select an item to trade.');
+        }
       });
     }
 
