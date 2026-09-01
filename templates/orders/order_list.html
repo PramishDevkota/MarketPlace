@@ -33,6 +33,14 @@
                         <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
                         <span class="order-date">{{ order.created_at|date:"F d, Y" }}</span>
                     </p>
+                    {% if order.status == 'PENDING' and not order.is_paid %}
+                    <p class="order-card-actions">
+                        <a href="{% url 'orders:order_cancel' pk=order.pk %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Are you sure you want to cancel this order?');">
+                            <i class="fas fa-times"></i> Cancel Order
+                        </a>
+                    </p>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

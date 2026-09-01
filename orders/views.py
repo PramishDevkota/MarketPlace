@@ -82,6 +82,25 @@ def order_checkout_view(request, pk):
 
 
 @login_required
+def order_cancel_view(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+
+    if request.user != order.buyer:
+        messages.error(request, 'You are not authorized to cancel this order.')
+        return redirect('marketplace:home')
+
+    if order.status != 'PENDING' or order.is_paid:
+        messages.error(request, 'This order can no longer be cancelled. Orders can only be cancelled before payment is made.')
+        return redirect('orders:order_detail', pk=order.pk)
+
+    order.status = 'CANCELLED'
+    order.save()
+
+    messages.success(request, f'Order #{order.pk} has been cancelled.')
+    return redirect('orders:order_detail', pk=order.pk)
+
+
+@login_required
 def order_success_view(request, pk):
     order = get_object_or_404(
         Order.objects.select_related('buyer', 'seller', 'product', 'product__category'),

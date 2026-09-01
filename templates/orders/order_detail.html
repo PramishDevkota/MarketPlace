@@ -18,6 +18,15 @@
             <div class="order-detail-header">
                 <h1>Order #{{ order.pk }}</h1>
                 <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                {% if order.status == 'PENDING' and not order.is_paid and user == order.buyer %}
+                <a href="{% url 'orders:checkout' pk=order.pk %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-credit-card"></i> Pay Deposit
+                </a>
+                <a href="{% url 'orders:order_cancel' pk=order.pk %}" class="btn btn-danger btn-sm"
+                   onclick="return confirm('Are you sure you want to cancel this order?');">
+                    <i class="fas fa-times"></i> Cancel Order
+                </a>
+                {% endif %}
                 {% if order.status == 'COMPLETED' and user == order.buyer %}
                 <a href="{% url 'reviews:add_review' order_id=order.pk %}" class="btn btn-primary btn-sm">
                     <i class="fas fa-pen"></i> Write a Review

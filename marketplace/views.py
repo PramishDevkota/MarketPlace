@@ -485,6 +485,7 @@ def buyer_dashboard_view(request):
     total_purchases = orders.count()
     active_orders = orders.filter(status__in=['PENDING', 'CONFIRMED']).count()
     completed_orders = orders.filter(status='COMPLETED').count()
+    cancelled_orders = orders.filter(status='CANCELLED').count()
     total_spent = orders.filter(
         status__in=['CONFIRMED', 'COMPLETED']
     ).aggregate(total=Sum('price_at_purchase'))['total'] or 0
@@ -513,6 +514,7 @@ def buyer_dashboard_view(request):
         'total_purchases': total_purchases,
         'active_orders': active_orders,
         'completed_orders': completed_orders,
+        'cancelled_orders': cancelled_orders,
         'total_spent': total_spent,
         'active_chats': active_chats,
         'pending_review_products': pending_review_products,
