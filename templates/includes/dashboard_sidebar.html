@@ -28,9 +28,11 @@
         <a href="{% url 'orders:order_list' %}" class="sidebar-link {% if request.resolver_match.view_name == 'orders:order_list' %}active{% endif %}">
             <i class="fas fa-shopping-cart"></i> My Orders
         </a>
+        {% if user.is_seller %}
         <a href="{% url 'orders:sales_list' %}" class="sidebar-link {% if request.resolver_match.view_name == 'orders:sales_list' %}active{% endif %}">
             <i class="fas fa-tags"></i> My Sales
         </a>
+        {% endif %}
         <a href="{% url 'messaging:sent_requests' %}" class="sidebar-link {% if request.resolver_match.view_name == 'messaging:sent_requests' %}active{% endif %}">
             <i class="fas fa-paper-plane"></i> My Sent Requests
         </a>
