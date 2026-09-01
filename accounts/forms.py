@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
 from .models import SellerRequest
@@ -51,7 +53,23 @@ class UserRegistrationForm(forms.ModelForm):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('This email is already registered.')
+        allowed_domains = ['gmail.com', 'islington.edu.np']
+        domain = email.split('@')[-1] if '@' in email else ''
+        if domain not in allowed_domains:
+            raise forms.ValidationError('Email must be a @gmail.com or @islington.edu.np address.')
         return email
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if not re.match(r'^[A-Za-z]+$', first_name):
+            raise forms.ValidationError('First name must contain only letters.')
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if not re.match(r'^[A-Za-z]+$', last_name):
+            raise forms.ValidationError('Last name must contain only letters.')
+        return last_name
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -94,6 +112,28 @@ class UserProfileForm(forms.ModelForm):
         widgets = {
             'profile_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        allowed_domains = ['gmail.com', 'islington.edu.np']
+        domain = email.split('@')[-1] if '@' in email else ''
+        if domain not in allowed_domains:
+            raise forms.ValidationError('Email must be a @gmail.com or @islington.edu.np address.')
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
+
+    def clean_first_name(self):
+        first_name = self.cleaned_data.get('first_name')
+        if not re.match(r'^[A-Za-z]+$', first_name):
+            raise forms.ValidationError('First name must contain only letters.')
+        return first_name
+
+    def clean_last_name(self):
+        last_name = self.cleaned_data.get('last_name')
+        if not re.match(r'^[A-Za-z]+$', last_name):
+            raise forms.ValidationError('Last name must contain only letters.')
+        return last_name
 
 
 class SellerRequestForm(forms.ModelForm):
