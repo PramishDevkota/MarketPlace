@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Cart, CartItem
+from .models import Category, Product, ProductImage, Cart, CartItem, TradeOffer
 
 
 @admin.register(Category)
@@ -57,3 +57,11 @@ class CartAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ['cart', 'product', 'quantity', 'subtotal', 'added_at']
     search_fields = ['product__name', 'cart__user__username']
+
+
+@admin.register(TradeOffer)
+class TradeOfferAdmin(admin.ModelAdmin):
+    list_display = ['sender', 'receiver', 'offered_item', 'requested_item', 'status', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['sender__username', 'receiver__username', 'offered_item__name', 'requested_item__name']
+    readonly_fields = ['created_at']

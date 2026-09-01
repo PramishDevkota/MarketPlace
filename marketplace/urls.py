@@ -22,4 +22,8 @@ urlpatterns = [
     path('dashboard/', views.buyer_dashboard_view, name='buyer_dashboard'),
     path('about/', views.about_view, name='about'),
     path('contact/', views.contact_view, name='contact'),
+    path('trades/', views.trade_dashboard, name='trade_dashboard'),
+    path('marketplace/product/<int:product_id>/trade/', views.propose_trade, name='propose_trade'),
+    path('trades/<int:offer_id>/accept/', views.accept_trade, name='accept_trade'),
+    path('trades/<int:offer_id>/reject/', views.reject_trade, name='reject_trade'),
 ]

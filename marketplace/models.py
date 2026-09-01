@@ -175,3 +175,30 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.product.name}"
+
+
+class TradeOffer(models.Model):
+    """An item-for-item swap proposal between two users."""
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('REJECTED', 'Rejected'),
+    ]
+
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_trade_offers')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_trade_offers')
+    offered_item = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='offered_in_trades')
+    requested_item = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='requested_in_trades')
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'marketplace_tradeoffer'
+        ordering = ['-created_at']
+        verbose_name = 'Trade Offer'
+        verbose_name_plural = 'Trade Offers'
+
+    def __str__(self):
+        return f"Trade: {self.offered_item.name} for {self.requested_item.name}"

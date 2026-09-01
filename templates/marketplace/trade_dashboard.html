@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static humanize currency_tags %}
+
+{% block title %}Trade Offers - Islington Marketplace{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-10 sm:px-6 lg:px-8">
+    <div class="mb-8 flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900">Trade Offers</h1>
+            <p class="mt-1 text-gray-500">Item-for-item swap proposals on campus.</p>
+        </div>
+        <a href="{% url 'marketplace:product_list' %}"
+           class="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">
+            <i class="fas fa-box-open"></i> Browse Items to Trade
+        </a>
+    </div>
+
+    {% if pending_incoming_count %}
+    <div class="mb-6 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <i class="fas fa-bell"></i>
+        You have <strong class="mx-1">{{ pending_incoming_count }}</strong> pending incoming trade offer{{ pending_incoming_count|pluralize }}.
+    </div>
+    {% endif %}
+
+    <!-- Incoming Offers -->
+    <section class="mb-10">
+        <h2 class="mb-4 text-xl font-bold text-gray-900">
+            <i class="fas fa-inbox mr-2 text-indigo-600"></i> Incoming Offers
+        </h2>
+        {% if incoming %}
+        <div class="space-y-4">
+            {% for offer in incoming %}
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm {% if offer.status == 'PENDING' %}ring-2 ring-indigo-100{% endif %}">
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+                    <!-- Offered (their item) -->
+                    <a href="{{ offer.offered_item.get_absolute_url }}" class="flex items-center gap-3">
+                        <span class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                            {% if offer.offered_item.image %}
+                            <img src="{{ offer.offered_item.image.url }}" alt="{{ offer.offered_item.name }}" class="h-full w-full object-cover">
+                            {% else %}
+                            <span class="flex h-full w-full items-center justify-center text-gray-400"><i class="fas fa-image"></i></span>
+                            {% endif %}
+                        </span>
+                        <span class="min-w-0">
+                            <span class="block text-xs font-medium text-indigo-600">Offer</span>
+                            <span class="block truncate text-sm font-semibold text-gray-900">
+                                {{ offer.offered_item.name }}
+                            </span>
+                            <span class="block text-xs text-gray-500">from {{ offer.sender.get_full_name|default:offer.sender.username }}</span>
+                        </span>
+                    </a>
+
+                    <div class="flex flex-col items-center justify-center text-2xl text-gray-300">
+                        <i class="fas fa-arrows-alt-h"></i>
+                    </div>
+
+                    <!-- Requested (their item) -->
+                    <a href="{{ offer.requested_item.get_absolute_url }}" class="flex items-center justify-end gap-3 text-right">
+                        <span class="min-w-0">
+                            <span class="block text-xs font-medium text-indigo-600">Requested</span>
+                            <span class="block truncate text-sm font-semibold text-gray-900">
+                                {{ offer.requested_item.name }}
+                            </span>
+                            <span class="block text-xs text-gray-500">yours · Rs. {{ offer.requested_item.price|floatformat:0 }}</span>
+                        </span>
+                        <span class="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                            {% if offer.requested_item.image %}
+                            <img src="{{ offer.requested_item.image.url }}" alt="{{ offer.requested_item.name }}" class="h-full w-full object-cover">
+                            {% else %}
+                            <span class="flex h-full w-full items-center justify-center text-gray-400"><i class="fas fa-image"></i></span>
+                            {% endif %}
+                        </span>
+                    </a>
+                </div>
+
+                {% if offer.message %}
+                <div class="mt-4 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                    <span class="font-semibold text-gray-800">Message:</span> {{ offer.message }}
+                </div>
+                {% endif %}
+
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
+                    <div class="flex items-center gap-2">
+                        {% if offer.status == 'PENDING' %}
+                        <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Pending</span>
+                        {% elif offer.status == 'ACCEPTED' %}
+                        <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">Accepted</span>
+                        {% else %}
+                        <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">Rejected</span>
+                        {% endif %}
+                        <span class="text-xs text-gray-400">{{ offer.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    {% if offer.status == 'PENDING' %}
+                    <div class="flex gap-2">
+                        <form method="post" action="{% url 'marketplace:accept_trade' offer_id=offer.pk %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">
+                                <i class="fas fa-check mr-1"></i> Accept
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'marketplace:reject_trade' offer_id=offer.pk %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="rounded-full border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+                                <i class="fas fa-times mr-1"></i> Reject
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+            <i class="fas fa-inbox mb-3 text-4xl text-gray-300"></i>
+            <p class="text-gray-500">No incoming trade offers yet.</p>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Outgoing Offers -->
+    <section>
+        <h2 class="mb-4 text-xl font-bold text-gray-900">
+            <i class="fas fa-paper-plane mr-2 text-indigo-600"></i> Outgoing Offers
+        </h2>
+        {% if outgoing %}
+        <div class="space-y-4">
+            {% for offer in outgoing %}
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
+                    <a href="{{ offer.offered_item.get_absolute_url }}" class="flex items-center gap-3">
+                        <span class="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                            {% if offer.offered_item.image %}
+                            <img src="{{ offer.offered_item.image.url }}" alt="{{ offer.offered_item.name }}" class="h-full w-full object-cover">
+                            {% else %}
+                            <span class="flex h-full w-full items-center justify-center text-gray-400"><i class="fas fa-image"></i></span>
+                            {% endif %}
+                        </span>
+                        <span class="min-w-0">
+                            <span class="block text-xs font-medium text-indigo-600">You offer</span>
+                            <span class="block truncate text-sm font-semibold text-gray-900">{{ offer.offered_item.name }}</span>
+                        </span>
+                    </a>
+
+                    <div class="flex flex-col items-center justify-center text-2xl text-gray-300">
+                        <i class="fas fa-arrows-alt-h"></i>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 text-right">
+                        <span class="min-w-0">
+                            <span class="block text-xs font-medium text-indigo-600">For</span>
+                            <span class="block truncate text-sm font-semibold text-gray-900">{{ offer.requested_item.name }}</span>
+                            <span class="block text-xs text-gray-500">from {{ offer.receiver.get_full_name|default:offer.receiver.username }}</span>
+                        </span>
+                        <span class="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                            {% if offer.requested_item.image %}
+                            <img src="{{ offer.requested_item.image.url }}" alt="{{ offer.requested_item.name }}" class="h-full w-full object-cover">
+                            {% else %}
+                            <span class="flex h-full w-full items-center justify-center text-gray-400"><i class="fas fa-image"></i></span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                    <span class="text-xs text-gray-400">{{ offer.created_at|date:"M d, Y" }}</span>
+                    {% if offer.status == 'PENDING' %}
+                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Pending</span>
+                    {% elif offer.status == 'ACCEPTED' %}
+                    <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">Accepted</span>
+                    {% else %}
+                    <span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">Rejected</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+            <i class="fas fa-paper-plane mb-3 text-4xl text-gray-300"></i>
+            <p class="text-gray-500">You haven't sent any trade offers yet.</p>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

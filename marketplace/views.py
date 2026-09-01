@@ -6,7 +6,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import re
-from .models import Product, Category, Cart, CartItem
+from .models import Product, Category, Cart, CartItem, TradeOffer
 from .forms import ProductForm, ProductImageFormSet
 from .utils import get_recommended_products
 from .ai_recommender import (
@@ -124,6 +124,20 @@ def product_detail_view(request, pk):
         request.user, exclude_product_id=product.pk
     )
 
+    trade_candidates = []
+    if (
+        request.user.is_authenticated
+        and request.user != product.seller
+        and product.status == 'APPROVED'
+        and product.is_available
+    ):
+        trade_candidates = Product.objects.filter(
+            seller=request.user,
+            status='APPROVED',
+            is_available=True,
+            stock__gt=0,
+        ).exclude(pk=product.pk)
+
     context = {
         'product': product,
         'reviews': reviews,
@@ -133,6 +147,7 @@ def product_detail_view(request, pk):
         'has_purchased': has_purchased,
         'review_form': review_form,
         'recommended_products': recommended_products,
+        'trade_candidates': trade_candidates,
     }
     return render(request, 'marketplace/product_detail.html', context)
 
@@ -761,3 +776,128 @@ def ai_product_finder_view(request):
         'message': message,
     }
     return render(request, 'marketplace/ai_finder.html', context)
+
+
+@login_required
+@admin_users_forbidden
+@require_POST
+def propose_trade(request, product_id):
+    """Allow a logged-in user to offer one of their active products in exchange for product_id."""
+    requested = get_object_or_404(
+        Product.objects.select_related('seller'),
+        pk=product_id,
+        status='APPROVED',
+        is_available=True,
+    )
+
+    if request.user == requested.seller:
+        messages.error(request, 'You cannot trade for your own product.')
+        return redirect('marketplace:product_detail', pk=requested.pk)
+
+    active_products = Product.objects.filter(
+        seller=request.user,
+        status='APPROVED',
+        is_available=True,
+        stock__gt=0,
+    ).exclude(pk=requested.pk)
+
+    if not active_products.exists():
+        messages.error(request, 'You need at least one active product listed to propose a trade.')
+        return redirect('marketplace:product_detail', pk=requested.pk)
+
+    offered_id = request.POST.get('offered_item')
+    message = request.POST.get('message', '').strip()
+    offered = get_object_or_404(Product, pk=offered_id, seller=request.user)
+
+    if offered == requested or not active_products.filter(pk=offered.pk).exists():
+        messages.error(request, 'Invalid trade item selected.')
+        return redirect('marketplace:product_detail', pk=requested.pk)
+
+    existing = TradeOffer.objects.filter(
+        sender=request.user,
+        offered_item=offered,
+        requested_item=requested,
+        status='PENDING',
+    ).exists()
+    if existing:
+        messages.error(request, 'You already have a pending trade offer for this item.')
+        return redirect('marketplace:product_detail', pk=requested.pk)
+
+    TradeOffer.objects.create(
+        sender=request.user,
+        receiver=requested.seller,
+        offered_item=offered,
+        requested_item=requested,
+        message=message,
+    )
+    messages.success(
+        request,
+        f'Your trade offer for "{requested.name}" has been sent to {requested.seller}.',
+    )
+    return redirect('marketplace:trade_dashboard')
+
+
+@login_required
+@admin_users_forbidden
+def trade_dashboard(request):
+    """Display incoming and outgoing trade offers for the logged-in user."""
+    incoming = TradeOffer.objects.filter(
+        receiver=request.user,
+    ).select_related('sender', 'offered_item', 'requested_item', 'offered_item__seller', 'requested_item__seller')
+
+    outgoing = TradeOffer.objects.filter(
+        sender=request.user,
+    ).select_related('receiver', 'offered_item', 'requested_item', 'offered_item__seller', 'requested_item__seller')
+
+    pending_incoming = incoming.filter(status='PENDING')
+
+    context = {
+        'incoming': incoming,
+        'outgoing': outgoing,
+        'pending_incoming_count': pending_incoming.count(),
+    }
+    return render(request, 'marketplace/trade_dashboard.html', context)
+
+
+@login_required
+@admin_users_forbidden
+@require_POST
+def accept_trade(request, offer_id):
+    offer = get_object_or_404(TradeOffer, pk=offer_id, receiver=request.user)
+
+    if offer.status != 'PENDING':
+        messages.error(request, 'This trade offer is no longer pending.')
+        return redirect('marketplace:trade_dashboard')
+
+    offer.status = 'ACCEPTED'
+    offer.save()
+
+    # Swap ownership as part of the trade.
+    offered = offer.offered_item
+    requested = offer.requested_item
+    offered.seller = request.user
+    offered.save()
+    requested.seller = offer.sender
+    requested.save()
+
+    messages.success(
+        request,
+        f'You accepted the trade and swapped "{offered.name}" for "{requested.name}".',
+    )
+    return redirect('marketplace:trade_dashboard')
+
+
+@login_required
+@admin_users_forbidden
+@require_POST
+def reject_trade(request, offer_id):
+    offer = get_object_or_404(TradeOffer, pk=offer_id, receiver=request.user)
+
+    if offer.status != 'PENDING':
+        messages.error(request, 'This trade offer is no longer pending.')
+        return redirect('marketplace:trade_dashboard')
+
+    offer.status = 'REJECTED'
+    offer.save()
+    messages.success(request, f'You rejected the trade offer for "{offer.requested_item.name}".')
+    return redirect('marketplace:trade_dashboard')
