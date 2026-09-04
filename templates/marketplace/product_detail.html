@@ -18,12 +18,6 @@
             <div class="product-detail-image">
                 {% if product.image %}
                 <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" />
-                <div class="d-flex gap-2 mt-3">
-                    <img src="{{ product.image.url }}" class="img-thumbnail gallery-thumb active" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
-                    {% for gal in product.gallery_images.all %}
-                    <img src="{{ gal.image.url }}" class="img-thumbnail gallery-thumb" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
-                    {% endfor %}
-                </div>
                 {% else %}
                 <div class="product-detail-placeholder">
                     <i class="fas fa-image"></i>
@@ -31,6 +25,14 @@
                 </div>
                 {% endif %}
             </div>
+            {% if product.image %}
+            <div class="d-flex gap-2 mt-3">
+                <img src="{{ product.image.url }}" class="img-thumbnail gallery-thumb active" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
+                {% for gal in product.gallery_images.all %}
+                <img src="{{ gal.image.url }}" class="img-thumbnail gallery-thumb" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
+                {% endfor %}
+            </div>
+            {% endif %}
 
             <div class="product-detail-info">
                 <span class="product-detail-category">{{ product.category.name|default:"Uncategorized" }}</span>
