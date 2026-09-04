@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Islington Marketplace{% endblock %}</title>
+    <meta property="og:site_name" content="Islington Marketplace">
+    {% block og_tags %}
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Islington Marketplace">
+    <meta property="og:description" content="The trusted marketplace for Islington College students. Buy, sell, and connect right on campus.">
+    <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}/">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-bg.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Islington Marketplace">
+    <meta name="twitter:description" content="The trusted marketplace for Islington College students. Buy, sell, and connect right on campus.">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero-bg.png' %}">
+    {% endblock %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
