@@ -311,6 +311,11 @@ textarea.form-control {
     color: #b91c1c;
 }
 
+.badge-accepted {
+    background: #dcfce7;
+    color: #15803d;
+}
+
 .badge-completed {
     background: #dcfce7;
     color: #15803d;

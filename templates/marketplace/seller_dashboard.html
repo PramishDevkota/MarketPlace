@@ -140,6 +140,45 @@
             {% endif %}
         </div>
 
+        {% if incoming_trades %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>
+                    <i class="fas fa-handshake"></i> Trade Offers
+                    {% if pending_incoming_trade_count %}
+                    <span class="badge badge-warning" title="Pending incoming">{{ pending_incoming_trade_count }} pending</span>
+                    {% endif %}
+                </h2>
+                <a href="{% url 'marketplace:trade_dashboard' %}" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="orders-list">
+                {% for offer in incoming_trades %}
+                <div class="order-card">
+                    <div class="order-card-image">
+                        {% if offer.offered_item.image %}
+                        <img src="{{ offer.offered_item.image.url }}" alt="{{ offer.offered_item.name }}">
+                        {% else %}
+                        <div class="order-card-placeholder"><i class="fas fa-image"></i></div>
+                        {% endif %}
+                    </div>
+                    <div class="order-card-info">
+                        <h3>
+                            {{ offer.offered_item.name|truncatewords:5 }}
+                            <i class="fas fa-arrow-right" style="color: var(--muted); font-size: 0.8em;"></i>
+                            {{ offer.requested_item.name|truncatewords:5 }}
+                        </h3>
+                        <p class="order-card-meta">
+                            <span class="badge badge-{{ offer.status|lower }}">{{ offer.get_status_display }}</span>
+                            <span>From: {{ offer.sender.get_full_name|default:offer.sender.username }}</span>
+                            <span class="order-date">{{ offer.created_at|date:"M d, Y" }}</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         {% if incoming_orders %}
         <div class="dashboard-section">
             <div class="section-header">

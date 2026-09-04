@@ -462,6 +462,11 @@ def seller_dashboard_view(request):
 
     incoming_orders = orders.exclude(status='CANCELLED')[:10]
 
+    incoming_trades = TradeOffer.objects.filter(
+        receiver=request.user,
+    ).select_related('sender', 'offered_item', 'requested_item', 'offered_item__seller', 'requested_item__seller')[:10]
+    pending_incoming_trades = incoming_trades.filter(status='PENDING')
+
     context = {
         'products': products,
         'total_products': total_products,
@@ -471,6 +476,8 @@ def seller_dashboard_view(request):
         'sold_products': sold_products,
         'total_revenue': total_revenue,
         'incoming_orders': incoming_orders,
+        'incoming_trades': incoming_trades,
+        'pending_incoming_trade_count': pending_incoming_trades.count(),
     }
     return render(request, 'marketplace/seller_dashboard.html', context)
 
