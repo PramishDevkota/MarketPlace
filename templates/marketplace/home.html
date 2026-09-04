@@ -27,7 +27,7 @@
                 <i class="fas fa-tools"></i> Admin Panel
             </a>
             {% elif user.is_authenticated and user.is_seller %}
-            <a href="{% url 'marketplace:product_list' %}?action=add" class="btn btn-lg btn-outline-light">
+            <a href="{% url 'marketplace:create_product' %}" class="btn btn-lg btn-outline-light">
                 <i class="fas fa-plus-circle"></i> Sell an Item
             </a>
             {% elif user.is_authenticated %}
