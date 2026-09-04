@@ -169,7 +169,7 @@
                 <h2><i class="fas fa-lightbulb"></i> Recommended For You</h2>
                 <a href="{% url 'marketplace:product_list' %}" class="section-link">Browse More <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="product-grid">
+            <div class="products-grid">
                 {% for product in recommended_products %}
                     {% include "components/product_card.html" %}
                 {% endfor %}
