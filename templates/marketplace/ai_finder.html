@@ -55,7 +55,7 @@
             {% if query %}
             <div class="advisor-bubble advisor-bubble--user">
                 <div class="advisor-bubble-label"><i class="fas fa-user-graduate"></i> You asked</div>
-                <p>"{{ query }}"{% if max_budget %} <span class="advisor-budget-tag">Budget: Rs. {{ max_budget|intcomma }}</span>{% endif %}</p>
+                <p>"{{ query }}"{% if max_budget %} <span class="advisor-budget-tag">Budget: {{ max_budget|npr }}</span>{% endif %}</p>
             </div>
             {% endif %}
 

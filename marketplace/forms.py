@@ -25,6 +25,16 @@ class ProductForm(forms.ModelForm):
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Price in Rs.', 'min': '0', 'step': '0.01'}),
     )
+    size = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., S, M, L, XL'}),
+    )
+    color = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Black, Blue, Red'}),
+    )
     category = forms.ModelChoiceField(
         queryset=None,
         widget=forms.Select(attrs={'class': 'form-control'}),
@@ -55,7 +65,7 @@ class ProductForm(forms.ModelForm):
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'category', 'location', 'programme', 'module_code', 'image']
+        fields = ['name', 'description', 'price', 'size', 'color', 'category', 'location', 'programme', 'module_code', 'image']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

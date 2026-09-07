@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error (500) - Islington Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; padding: 20px; text-align: center;">
+    <div style="max-width: 520px; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h1 style="font-size: 28px; font-weight: 800; margin-bottom: 12px; color: #0f172a;">Something went wrong</h1>
+        <p style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">
+            Our campus servers encountered an unexpected issue while processing your request. Please try refreshing the page or head back to the marketplace home.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a href="/" style="display: inline-flex; align-items: center; gap: 8px; background: #4f46e5; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 14px; transition: background 0.2s;">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            <button onclick="window.location.reload()" style="display: inline-flex; align-items: center; gap: 8px; background: #f1f5f9; color: #334155; padding: 10px 20px; border-radius: 8px; font-weight: 600; border: 1px solid #cbd5e1; cursor: pointer; font-size: 14px;">
+                <i class="fas fa-redo"></i> Refresh Page
+            </button>
+        </div>
+    </div>
+    <p style="margin-top: 24px; font-size: 13px; color: #94a3b8;">Islington College Student Marketplace &bull; Error 500</p>
+</body>
+</html>

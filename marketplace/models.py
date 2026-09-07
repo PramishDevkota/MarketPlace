@@ -58,6 +58,8 @@ class Product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    size = models.CharField(max_length=20, blank=True, help_text="e.g., S, M, L, XL (for clothing)")
+    color = models.CharField(max_length=50, blank=True, help_text="e.g., Black, Blue, Red")
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     location = models.CharField(max_length=20, choices=LOCATION_CHOICES)
     programme = models.CharField(max_length=50, choices=PROGRAMME_CHOICES, default='BSC_COMPUTING')

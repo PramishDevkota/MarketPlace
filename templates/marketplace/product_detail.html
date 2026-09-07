@@ -15,24 +15,26 @@
         </div>
 
         <div class="product-detail">
-            <div class="product-detail-image">
+            <div class="product-detail-media">
+                <div class="product-detail-image">
+                    {% if product.image %}
+                    <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" />
+                    {% else %}
+                    <div class="product-detail-placeholder">
+                        <i class="fas fa-image"></i>
+                        <span>No Image</span>
+                    </div>
+                    {% endif %}
+                </div>
                 {% if product.image %}
-                <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded" />
-                {% else %}
-                <div class="product-detail-placeholder">
-                    <i class="fas fa-image"></i>
-                    <span>No Image</span>
+                <div class="product-gallery">
+                    <img src="{{ product.image.url }}" class="gallery-thumb active" alt="{{ product.name }}" onclick="swapMainImage(this.src)">
+                    {% for gal in product.gallery_images.all %}
+                    <img src="{{ gal.image.url }}" class="gallery-thumb" alt="{{ product.name }} gallery image" onclick="swapMainImage(this.src)">
+                    {% endfor %}
                 </div>
                 {% endif %}
             </div>
-            {% if product.image %}
-            <div class="d-flex gap-2 mt-3">
-                <img src="{{ product.image.url }}" class="img-thumbnail gallery-thumb active" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
-                {% for gal in product.gallery_images.all %}
-                <img src="{{ gal.image.url }}" class="img-thumbnail gallery-thumb" style="width: 70px; height: 70px; cursor: pointer;" onclick="swapMainImage(this.src)">
-                {% endfor %}
-            </div>
-            {% endif %}
 
             <div class="product-detail-info">
                 <span class="product-detail-category">{{ product.category.name|default:"Uncategorized" }}</span>
@@ -74,6 +76,24 @@
                             <span>{{ product.location_display }}</span>
                         </div>
                     </div>
+                    {% if product.color %}
+                    <div class="meta-item">
+                        <i class="fas fa-palette"></i>
+                        <div>
+                            <label>Colour</label>
+                            <span>{{ product.color }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.size %}
+                    <div class="meta-item">
+                        <i class="fas fa-ruler-vertical"></i>
+                        <div>
+                            <label>Size</label>
+                            <span>{{ product.size }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="meta-item">
                         <i class="fas fa-user"></i>
                         <div>
@@ -113,7 +133,7 @@
                         </form>
                         {% if trade_candidates %}
                         <button type="button" class="btn btn-outline btn-lg" id="propose-trade-btn">
-                            🔄 Propose a Trade
+                            <i class="fas fa-exchange-alt"></i> Propose a Trade
                         </button>
                         {% endif %}
                         {% endif %}
@@ -280,58 +300,52 @@
 
 <!-- Propose a Trade Modal -->
 {% if trade_candidates %}
-<div class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 p-4" id="trade-modal">
-    <div class="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-            <h3 class="text-lg font-bold text-gray-900">🔄 Propose a Trade</h3>
-            <button type="button" id="trade-modal-close" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label="Close">
+<div class="modal-overlay" id="trade-modal" role="dialog" aria-modal="true" aria-labelledby="trade-modal-title">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="trade-modal-title"><i class="fas fa-exchange-alt"></i> Propose a Trade</h3>
+            <button type="button" class="modal-close" id="trade-modal-close" aria-label="Close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <form method="post" action="{% url 'marketplace:propose_trade' product_id=product.pk %}" id="trade-form">
             {% csrf_token %}
-            <div class="px-5 py-4">
-                <p class="mb-3 text-sm text-gray-600">
+            <div class="modal-body">
+                <p class="trade-modal-intro">
                     Trade one of your products for
-                    <span class="font-semibold text-gray-900">{{ product.name }}</span>.
+                    <strong>{{ product.name }}</strong>.
                 </p>
-                <label for="offered_item" class="mb-1 block text-sm font-semibold text-gray-700">
-                    Select an item to offer
-                </label>
-                <div class="max-h-64 space-y-2 overflow-y-auto">
-                    {% for candidate in trade_candidates %}
-                    <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-3 transition hover:border-indigo-400 hover:bg-indigo-50">
-                        <input type="radio" name="offered_item" value="{{ candidate.pk }}" required
-                               class="h-4 w-4 shrink-0 accent-indigo-600">
-                        <span class="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                            {% if candidate.image %}
-                            <img src="{{ candidate.image.url }}" alt="{{ candidate.name }}" class="h-full w-full object-cover">
-                            {% else %}
-                            <span class="flex h-full w-full items-center justify-center text-gray-400"><i class="fas fa-image"></i></span>
-                            {% endif %}
-                        </span>
-                        <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold text-gray-800">{{ candidate.name }}</span>
-                            <span class="block text-xs text-gray-500">Rs. {{ candidate.price|floatformat:0 }}</span>
-                        </span>
-                    </label>
-                    {% endfor %}
+                <div class="form-group">
+                    <label for="offered_item">Select an item to offer</label>
+                    <div class="trade-candidates">
+                        {% for candidate in trade_candidates %}
+                        <label class="trade-candidate">
+                            <input type="radio" name="offered_item" value="{{ candidate.pk }}" required>
+                            <span class="trade-candidate-thumb">
+                                {% if candidate.image %}
+                                <img src="{{ candidate.image.url }}" alt="{{ candidate.name }}">
+                                {% else %}
+                                <i class="fas fa-image"></i>
+                                {% endif %}
+                            </span>
+                            <span class="trade-candidate-info">
+                                <span class="trade-candidate-name">{{ candidate.name }}</span>
+                                <span class="trade-candidate-price">{{ candidate.price|npr }}</span>
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
-                <label for="id_trade_message" class="mt-4 mb-1 block text-sm font-semibold text-gray-700">
-                    Message <span class="font-normal text-gray-400">(optional)</span>
-                </label>
-                <textarea name="message" id="id_trade_message" rows="2"
-                          class="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                          placeholder="Add a note to your trade offer..."></textarea>
+                <div class="form-group">
+                    <label for="id_trade_message">Message <span class="trade-modal-optional">(optional)</span></label>
+                    <textarea name="message" id="id_trade_message" rows="2" class="form-control"
+                              placeholder="Add a note to your trade offer..."></textarea>
+                </div>
             </div>
-            <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-3">
-                <button type="button" id="trade-modal-cancel"
-                        class="rounded-full px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-100">
-                    Cancel
-                </button>
-                <button type="submit"
-                        class="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700">
-                    Send Trade Offer
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="trade-modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send Trade Offer
                 </button>
             </div>
         </form>
@@ -342,6 +356,9 @@
 <script>
   function swapMainImage(src) {
     document.getElementById('mainProductImage').src = src;
+    document.querySelectorAll('.gallery-thumb').forEach(function(thumb) {
+      thumb.classList.toggle('active', thumb.src === src);
+    });
   }
 
   function getCookie(name) {
@@ -430,14 +447,10 @@
     var tradeCancel = document.getElementById('trade-modal-cancel');
 
     function openTradeModal() {
-      if (!tradeModal) { return; }
-      tradeModal.classList.remove('hidden');
-      tradeModal.classList.add('flex');
+      if (tradeModal) { tradeModal.classList.add('modal-open'); }
     }
     function closeTradeModal() {
-      if (!tradeModal) { return; }
-      tradeModal.classList.add('hidden');
-      tradeModal.classList.remove('flex');
+      if (tradeModal) { tradeModal.classList.remove('modal-open'); }
     }
     if (tradeBtn) { tradeBtn.addEventListener('click', openTradeModal); }
     if (tradeClose) { tradeClose.addEventListener('click', closeTradeModal); }
@@ -445,6 +458,11 @@
     if (tradeModal) {
       tradeModal.addEventListener('click', function (e) {
         if (e.target === tradeModal) { closeTradeModal(); }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && tradeModal.classList.contains('modal-open')) {
+          closeTradeModal();
+        }
       });
     }
 

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}Order #{{ order.pk }} - Islington Marketplace{% endblock %}
 
@@ -56,7 +56,7 @@
                         <h3>Order Summary</h3>
                         <div class="summary-row">
                             <span>Price at Purchase</span>
-                            <span>Rs. {{ order.price_at_purchase|intcomma }}</span>
+                            <span>{{ order.price_at_purchase|npr }}</span>
                         </div>
                         <div class="summary-row">
                             <span>Quantity</span>
@@ -64,7 +64,7 @@
                         </div>
                         <div class="summary-row">
                             <span>Total Price</span>
-                            <span>Rs. {{ order.total_price|intcomma }}</span>
+                            <span>{{ order.total_price|npr }}</span>
                         </div>
                         <div class="summary-row">
                             <span>Status</span>

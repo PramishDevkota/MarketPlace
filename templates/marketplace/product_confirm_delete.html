@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}Delete Product - Islington Marketplace{% endblock %}
 
@@ -15,7 +15,7 @@
                 <div class="buy-confirm-product">
                     <div class="buy-confirm-info">
                         <h3>{{ product.name }}</h3>
-                        <p class="buy-confirm-price">Rs. {{ product.price|intcomma }}</p>
+                        <p class="buy-confirm-price">{{ product.price|npr }}</p>
                         <p class="buy-confirm-meta">
                             <span><i class="fas fa-map-marker-alt"></i> {{ product.location_display }}</span>
                             <span class="badge badge-{{ product.status|lower }}">{{ product.get_status_display }}</span>

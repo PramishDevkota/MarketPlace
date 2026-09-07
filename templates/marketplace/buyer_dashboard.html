@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}My Dashboard - Islington Marketplace{% endblock %}
 
@@ -48,7 +48,7 @@
             <div class="stat-card stat-card-accent">
                 <div class="stat-icon"><i class="fas fa-coins"></i></div>
                 <div class="stat-info">
-                    <span class="stat-value">Rs. {{ total_spent|intcomma }}</span>
+                    <span class="stat-value">{{ total_spent|npr }}</span>
                     <span class="stat-label">Total Spent</span>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                         </div>
                         <div class="order-card-info">
                             <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
-                            <p class="order-card-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                            <p class="order-card-price">{{ order.price_at_purchase|npr }}</p>
                             <p class="order-card-meta">
                                 <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
                                 <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span>

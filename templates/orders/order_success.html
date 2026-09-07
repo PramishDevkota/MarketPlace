@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}Order #{{ order.pk }} - Payment Received - Islington Marketplace{% endblock %}
 
@@ -28,15 +28,15 @@
                     </div>
                     <div class="summary-row">
                         <span>Total Price</span>
-                        <span>Rs. {{ order.total_price|floatformat:2 }}</span>
+                        <span>{{ order.total_price|npr }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Advance Deposit Paid</span>
-                        <span>Rs. {{ order.amount_paid|floatformat:2 }}</span>
+                        <span>{{ order.amount_paid|npr }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Balance Due at Delivery</span>
-                        <span>Rs. {{ order.remaining_amount|floatformat:2 }}</span>
+                        <span>{{ order.remaining_amount|npr }}</span>
                     </div>
                     <div class="summary-row">
                         <span>Status</span>
@@ -60,7 +60,7 @@
 
                 <div class="buy-confirm-notice">
                     <i class="fas fa-handshake"></i>
-                    <p>Your stock is now reserved. Meet the seller at <strong>{{ order.product.location_display }}</strong> and settle the remaining balance of <strong>Rs. {{ order.remaining_amount|floatformat:2 }}</strong> when you receive the product.</p>
+                    <p>Your stock is now reserved. Meet the seller at <strong>{{ order.product.location_display }}</strong> and settle the remaining balance of <strong>{{ order.remaining_amount|npr }}</strong> when you receive the product.</p>
                 </div>
 
                 <div class="form-actions">

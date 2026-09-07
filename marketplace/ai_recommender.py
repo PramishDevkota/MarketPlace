@@ -172,14 +172,109 @@ def parse_query(query):
     return _fallback_parse(query)
 
 
+# Semantic concept groups ####################################################
+# Each group maps a base concept (e.g. "laptop") to the aliases a shopper or a
+# listing might use for it. Matching is concept-overlap based, so a query for
+# "laptop" finds a listing titled "MacBook Air M3" and vice versa.
+
+
+def _tokenize(text):
+    """Split text into lowercase, singularised, meaningful tokens."""
+    if not text:
+        return []
+    words = re.split(r'[^a-zA-Z0-9]+', text.lower())
+    tokens = []
+    for word in words:
+        word = word.strip()
+        if word.endswith('ies') and len(word) > 4:
+            word = word[:-3] + 'y'
+        elif word.endswith('es') and len(word) > 4:
+            word = word[:-2]
+        elif word.endswith('s') and len(word) > 3 and not word.endswith('ss'):
+            word = word[:-1]
+        if word and word not in _SEARCH_STOPWORDS and len(word) >= 2:
+            tokens.append(word)
+    return tokens
+
+
+_SEARCH_STOPWORDS = {
+    'i', 'want', 'need', 'some', 'a', 'an', 'for', 'the', 'to', 'of', 'and',
+    'or', 'with', 'my', 'me', 'looking', 'find', 'buy', 'have',
+    'can', 'you', 'help', 'give', 'new', 'used',
+    'product', 'item', 'things', 'stuff', 'campus', 'islington', 'college',
+    'university', 'year', 'semester', 'under', 'around', 'about', 'npr', 'rs',
+    'budget', 'any', 'where', 'how', 'much', 'price',
+}
+
+_SEARCH_CONCEPTS = {
+    'laptop': ['laptop', 'lap top', 'notebook', 'notebook computer', 'computer',
+               'mac', 'macbook', 'mac book', 'pc', 'portable', 'thinkpad'],
+    'phone': ['phone', 'mobile', 'smartphone', 'cell', 'cellphone',
+              'iphone', 'android', 'samsung', 'nokia'],
+    'headphone': ['headphone', 'earphone', 'earbud', 'airpod', 'audio', 'sound'],
+    'keyboard': ['keyboard', 'key board', 'keypad', 'keys'],
+    'mouse': ['mouse', 'mice', 'optical mouse'],
+    'charger': ['charger', 'charging', 'power adapter', 'adapter', 'usb cable', 'cable'],
+    'bag': ['bag', 'backpack', 'rucksack', 'satchel', 'knapsack',
+            'schoolbag', 'laptop bag', 'carry bag', 'tote', 'pouch'],
+    'notebook': ['notebook', 'notepad', 'note book', 'notes', 'writing pad',
+                 'exercise book', 'journal', 'spiral', 'folio'],
+    'book': ['book', 'textbook', 'novel', 'reading', 'guide', 'bundle',
+             'paperback', 'hardcover'],
+    'pen': ['pen', 'stationery', 'marker', 'highlighter', 'pencil'],
+    'shoe': ['shoe', 'footwear', 'sneaker', 'trainer', 'boot', 'sandal'],
+    'shirt': ['shirt', 'top', 'tee', 't-shirt', 'tshirt', 'hoodie', 'sweater'],
+    'electronics': ['electronics', 'electronic', 'gadget', 'device', 'tech',
+                    'accessory', 'computer part'],
+    'poster': ['poster', 'print', 'art', 'wall decoration', 'frame'],
+}
+
+
+def _concept_family(word):
+    """Return {word} plus the aliases of every concept group it belongs to."""
+    family = {word}
+    for base, aliases in _SEARCH_CONCEPTS.items():
+        if word == base or word in aliases:
+            family.add(base)
+            family.update(aliases)
+    return family
+
+
+def _product_concepts(product):
+    """All semantic concept tokens a listing contributes (title, description,
+    category, programme, module code)."""
+    parts = [
+        product.name,
+        product.description,
+        product.category.name if product.category else '',
+        product.programme or '',
+        product.module_code or '',
+    ]
+    concepts = set()
+    for token in _tokenize(' '.join(parts)):
+        concepts |= _concept_family(token)
+    return concepts
+
+
+def product_matches_terms(product, terms):
+    """True if any *term* shares a semantic concept with the listing.
+
+    Concept-overlap matching lets "laptop" match a "MacBook Air M3" listing and
+    lets "books" match a listing described (but not titled) as a textbook.
+    """
+    query_concepts = set()
+    for term in terms:
+        tokens = _tokenize(str(term))
+        if not tokens:
+            continue
+        for token in tokens:
+            query_concepts |= _concept_family(token)
+    return bool(_product_concepts(product) & query_concepts)
+
+
 def _term_matches(term, product):
-    """True if the term appears in the product title or category name."""
-    term = term.lower()
-    if term in product.name.lower():
-        return True
-    if product.category and term in product.category.name.lower():
-        return True
-    return False
+    """True if the term shares a semantic concept with the listing."""
+    return product_matches_terms(product, [term])
 
 
 def _purchased_keywords(user):

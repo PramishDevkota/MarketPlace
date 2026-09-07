@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}Checkout - Order #{{ order.pk }} - Islington Marketplace{% endblock %}
 
@@ -14,8 +14,7 @@
             <span>Checkout Order #{{ order.pk }}</span>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-7">
+        <div class="checkout-layout">
             <div class="checkout-main">
             <div class="form-card">
                 <div class="form-header">
@@ -35,7 +34,7 @@
                     </div>
                     <div class="buy-confirm-info">
                         <h3>{{ order.product.name }}</h3>
-                        <p class="buy-confirm-price">Rs. {{ order.price_at_purchase|intcomma }}</p>
+                        <p class="buy-confirm-price">{{ order.price_at_purchase|npr }}</p>
                         <p class="buy-confirm-meta">
                             <span><i class="fas fa-map-marker-alt"></i> {{ order.product.location_display }}</span>
                             <span><i class="fas fa-user"></i> {{ order.seller.get_full_name|default:order.seller.username }}</span>
@@ -46,22 +45,22 @@
                 <div class="checkout-summary">
                     <div class="summary-row total">
                         <span>Total Price</span>
-                        <span class="summary-value">Rs. {{ total_price|floatformat:2 }}</span>
+                        <span class="summary-value">{{ total_price|npr }}</span>
                     </div>
                     <div class="summary-row">
                         <span><i class="fas fa-mobile-alt"></i> Advance Deposit (via Khalti)</span>
-                        <span class="summary-value deposit">Rs. {{ deposit_amount|floatformat:2 }}</span>
+                        <span class="summary-value deposit">{{ deposit_amount|npr }}</span>
                     </div>
                     <div class="summary-row">
                         <span><i class="fas fa-handshake"></i> Balance at Delivery</span>
-                        <span class="summary-value balance">Rs. {{ remaining_balance|floatformat:2 }}</span>
+                        <span class="summary-value balance">{{ remaining_balance|npr }}</span>
                     </div>
                 </div>
 
                 {% if order.is_paid %}
                 <div class="checkout-paid-banner">
                     <i class="fas fa-check-circle"></i>
-                    <span>Deposit of Rs. {{ order.amount_paid|floatformat:2 }} already received. The remaining balance of Rs. {{ remaining_balance|floatformat:2 }} is due at delivery on campus.</span>
+                    <span>Deposit of {{ order.amount_paid|npr }} already received. The remaining balance of {{ remaining_balance|npr }} is due at delivery on campus.</span>
                 </div>
                 {% else %}
                 <button type="button" class="btn btn-primary btn-lg btn-block" id="pay-khalti-btn">
@@ -70,24 +69,22 @@
                 {% endif %}
             </div>
             </div>
-            </div>
 
-            <div class="col-lg-5">
                 <aside class="price-summary-card">
                     <h3><span class="currency-badge">Rs.</span> Price Summary</h3>
 
                     <div class="summary-row total">
                         <span>Total Price</span>
-                        <span class="summary-value">Rs. {{ total_price|floatformat:2 }}</span>
+                        <span class="summary-value">{{ total_price|npr }}</span>
                     </div>
 
                     <div class="summary-row">
                         <span>Tax (2%)</span>
-                        <span class="summary-value">Rs. {{ tax_amount|floatformat:2 }}</span>
+                        <span class="summary-value">{{ tax_amount|npr }}</span>
                     </div>
                     <div class="summary-row grand">
                         <span>Grand Total</span>
-                        <span class="summary-value grand-value">Rs. {{ grand_total|floatformat:2 }}</span>
+                        <span class="summary-value grand-value">{{ grand_total|npr }}</span>
                     </div>
 
                     <div class="payment-methods">
@@ -110,7 +107,6 @@
                         </a>
                     </div>
                 </aside>
-            </div>
         </div>
     </div>
 </div>
@@ -127,14 +123,14 @@
             <div class="split-item initial">
                 <div class="split-icon"><i class="fas fa-mobile-alt"></i></div>
                 <div>
-                    <h4>Advance Deposit - Rs. {{ deposit_amount|floatformat:2 }}</h4>
+                    <h4>Advance Deposit - {{ deposit_amount|npr }}</h4>
                     <p>Paid now via Khalti Sandbox to reserve product.</p>
                 </div>
             </div>
             <div class="split-item balance">
                 <div class="split-icon"><i class="fas fa-handshake"></i></div>
                 <div>
-                    <h4>Remaining Balance - Rs. {{ remaining_balance|floatformat:2 }}</h4>
+                    <h4>Remaining Balance - {{ remaining_balance|npr }}</h4>
                     <p>Paid directly to the seller upon receiving and verifying the product at Islington College campus.</p>
                 </div>
             </div>

@@ -107,6 +107,31 @@ class ProductListViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class AIFinderSynonymTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('marketplace:ai_finder')
+        self.seller = User.objects.create_user(
+            username='seller', password='pass1234', is_seller=True
+        )
+        self.category = Category.objects.create(name='Electronics', slug='electronics')
+        self.product = Product.objects.create(
+            seller=self.seller,
+            category=self.category,
+            name='MacBook Air M3',
+            description='macbook',
+            price=Decimal('150000.00'),
+            location='main_block',
+            status='APPROVED',
+        )
+
+    def test_laptop_synonyms_match_macbook_listing(self):
+        response = self.client.get(self.url, {'query': 'i want laptop only'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'MacBook Air M3')
+        self.assertNotContains(response, 'No exact matches found')
+
+
 class ProductDetailViewTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -175,6 +200,7 @@ class CreateProductViewTest(TestCase):
             'price': '3000.00',
             'category': self.category.pk,
             'location': 'main_block',
+            'programme': 'BSC_COMPUTING',
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Product.objects.filter(name='Desk').exists())
@@ -187,6 +213,7 @@ class CreateProductViewTest(TestCase):
             'price': '1500.00',
             'category': self.category.pk,
             'location': 'kumari_hall',
+            'programme': 'BBA',
         })
         product = Product.objects.get(name='Chair')
         self.assertEqual(product.status, 'PENDING')

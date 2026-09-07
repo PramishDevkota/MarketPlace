@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static humanize %}
+{% load static humanize currency_tags %}
 
 {% block title %}My Sales - Islington Marketplace{% endblock %}
 
@@ -28,7 +28,7 @@
                 </div>
                 <div class="order-card-info">
                     <h3><a href="{{ order.get_absolute_url }}">{{ order.product.name }}</a></h3>
-                    <p class="order-card-price">Rs. {{ order.total_price|floatformat:2 }}</p>
+                    <p class="order-card-price">{{ order.total_price|npr }}</p>
                     <p class="order-card-meta">
                         <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
                         <span>Buyer: {{ order.buyer.get_full_name|default:order.buyer.username }}</span>
