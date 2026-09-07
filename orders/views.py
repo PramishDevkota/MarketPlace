@@ -8,6 +8,7 @@ import requests
 from decimal import Decimal
 from accounts.decorators import admin_users_forbidden
 from .models import Order
+from notifications.services import notify_seller_of_payment
 
 
 @login_required
@@ -233,7 +234,9 @@ def khalti_verify_payment(request):
             product.stock = 0
             product.is_available = False
             product.status = 'SOLD'
-            product.save()
+        product.save()
+
+        notify_seller_of_payment(order)
 
         messages.success(
             request,

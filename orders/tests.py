@@ -281,7 +281,8 @@ class KhaltiPaymentTest(TestCase):
         self.assertEqual(payload['amount'], int(expected_deposit * 100))
 
     @patch('orders.views.requests.post')
-    def test_verify_completes_advance_payment(self, mock_post):
+    @patch('orders.views.notify_seller_of_payment')
+    def test_verify_completes_advance_payment(self, mock_notify, mock_post):
         self.client.login(username='pay_buyer', password='pass1234')
         self.order.transaction_id = 'mock-pidx-123'
         self.order.save()
@@ -307,6 +308,7 @@ class KhaltiPaymentTest(TestCase):
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 0)
         self.assertEqual(self.product.status, 'SOLD')
+        mock_notify.assert_called_once_with(self.order)
 
     @patch('orders.views.requests.post')
     def test_verify_failed_payment_keeps_stock(self, mock_post):

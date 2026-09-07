@@ -136,6 +136,21 @@ KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
 KHALTI_SECRET_KEY = config('KHALTI_SECRET_KEY', default='')
 KHALTI_PUBLIC_KEY = config('KHALTI_PUBLIC_KEY', default='')
 
+# Email (SMTP) for order payment notifications. Leave unset to disable email sending.
+EMAIL_HOST = config('EMAIL_HOST', default='')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@islingtonmarketplace.com')
+
+# WhatsApp Cloud API credentials (optional; used when configured).
+WHATSAPP_TOKEN = config('WHATSAPP_TOKEN', default='')
+WHATSAPP_PHONE_ID = config('WHATSAPP_PHONE_ID', default='')
+
+# Base URL used when building absolute links inside notifications.
+MARKETPLACE_BASE_URL = config('MARKETPLACE_BASE_URL', default='https://islington-marketplace.vercel.app')
+
 JAZZMIN_SETTINGS = {
     'site_title': 'Islington Marketplace Admin',
     'site_header': 'Islington Marketplace',
