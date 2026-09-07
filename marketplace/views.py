@@ -369,6 +369,7 @@ def cart_view(request):
     """Display the user's cart contents with per-item purchase links."""
     cart = None
     items = []
+    pending_orders = {}
     if request.user.is_authenticated:
         cart = Cart.objects.filter(user=request.user).first()
     else:
@@ -378,6 +379,20 @@ def cart_view(request):
 
     if cart:
         items = cart.items.select_related('product', 'product__seller', 'product__category').all()
+
+        # Attach any unpaid PENDING order to each cart item so the buyer can
+        # cancel it directly from the cart rather than letting it linger.
+        if request.user.is_authenticated and items:
+            product_ids = [item.product_id for item in items]
+            pending = Order.objects.filter(
+                buyer=request.user,
+                product_id__in=product_ids,
+                status='PENDING',
+                is_paid=False,
+            ).values_list('product_id', 'pk')
+            pending_orders = dict(pending)
+            for item in items:
+                item.pending_order_id = pending_orders.get(item.product_id)
 
     context = {
         'cart': cart,

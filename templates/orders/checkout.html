@@ -98,14 +98,21 @@
                         </div>
                     </div>
 
-                    <div class="checkout-actions">
-                        <button type="button" class="btn btn-primary btn-block" id="sidebar-khalti-btn">
-                            <i class="fas fa-lock"></i> Checkout
-                        </button>
-                        <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline btn-block">
-                            <i class="fas fa-arrow-left"></i> Continue Shopping
-                        </a>
-                    </div>
+<div class="checkout-actions">
+                            <button type="button" class="btn btn-primary btn-block" id="sidebar-khalti-btn">
+                                <i class="fas fa-lock"></i> Checkout
+                            </button>
+                            {% if not order.is_paid %}
+                            <a href="{% url 'orders:order_cancel' pk=order.pk %}?next={% url 'marketplace:cart' %}"
+                               class="btn btn-danger btn-block"
+                               onclick="return confirm('Are you sure you want to cancel this order?');">
+                                <i class="fas fa-times"></i> Cancel Order
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline btn-block">
+                                <i class="fas fa-arrow-left"></i> Continue Shopping
+                            </a>
+                        </div>
                 </aside>
         </div>
     </div>

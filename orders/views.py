@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 import requests
 from decimal import Decimal
 from accounts.decorators import admin_users_forbidden
@@ -97,6 +98,10 @@ def order_cancel_view(request, pk):
     order.save()
 
     messages.success(request, f'Order #{order.pk} has been cancelled.')
+
+    next_url = request.GET.get('next') or request.POST.get('next')
+    if next_url and url_has_allowed_host_and_scheme(next_url, None):
+        return redirect(next_url)
     return redirect('orders:order_detail', pk=order.pk)
 
 
@@ -227,7 +232,8 @@ def khalti_verify_payment(request):
         if product.stock <= 0:
             product.stock = 0
             product.is_available = False
-        product.save()
+            product.status = 'SOLD'
+            product.save()
 
         messages.success(
             request,

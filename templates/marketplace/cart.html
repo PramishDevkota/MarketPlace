@@ -55,6 +55,13 @@
                                 <i class="fas fa-trash"></i> Remove
                             </button>
                         </form>
+                        {% if item.pending_order_id %}
+                        <a href="{% url 'orders:order_cancel' pk=item.pending_order_id %}?next={% url 'marketplace:cart' %}"
+                           class="btn btn-sm btn-outline"
+                           onclick="return confirm('Cancel the pending order for this product?');">
+                            <i class="fas fa-times"></i> Cancel Pending Order
+                        </a>
+                        {% endif %}
                         <a href="{{ item.product.get_absolute_url }}" class="btn btn-sm btn-outline">
                             <i class="fas fa-eye"></i> View
                         </a>
