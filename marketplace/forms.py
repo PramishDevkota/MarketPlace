@@ -62,12 +62,47 @@ class ProductForm(forms.ModelForm):
         required=False,
         widget=forms.FileInput(attrs={'class': 'form-control'}),
     )
+    is_on_sale = forms.BooleanField(
+        required=False,
+        label='Put this product on sale',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    sale_price = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Sale price in Rs.',
+            'min': '0',
+            'step': '0.01',
+        }),
+        help_text='Discounted price. Must be lower than the original price.',
+    )
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'size', 'color', 'category', 'location', 'programme', 'module_code', 'image']
+        fields = ['name', 'description', 'price', 'size', 'color', 'category', 'location', 'programme', 'module_code', 'image', 'is_on_sale', 'sale_price']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from .models import Category
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
+
+    def clean(self):
+        cleaned = super().clean()
+        price = cleaned.get('price')
+        is_on_sale = cleaned.get('is_on_sale')
+        sale_price = cleaned.get('sale_price')
+
+        if is_on_sale:
+            if sale_price is None:
+                self.add_error('sale_price', 'Enter a sale price when the product is on sale.')
+            elif sale_price <= 0:
+                self.add_error('sale_price', 'Sale price must be greater than 0.')
+            elif price is not None and sale_price >= price:
+                self.add_error('sale_price', 'Sale price must be lower than the original price.')
+        else:
+            cleaned['sale_price'] = None
+        return cleaned

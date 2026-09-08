@@ -24,7 +24,15 @@
                     </div>
                     <div class="buy-confirm-info">
                         <h3>{{ product.name }}</h3>
-                        <p class="buy-confirm-price">{{ product.price|npr }}</p>
+                        {% if product.on_sale %}
+                        <p class="buy-confirm-price">
+                            <span class="sale-card-original">{{ product.price|npr }}</span>
+                            <span class="sale-card-price">{{ product.current_price|npr }}</span>
+                            <span class="sale-discount-static">-{{ product.discount_percent }}%</span>
+                        </p>
+                        {% else %}
+                        <p class="buy-confirm-price">{{ product.current_price|npr }}</p>
+                        {% endif %}
                         <p class="buy-confirm-meta">
                             <span><i class="fas fa-map-marker-alt"></i> {{ product.location_display }}</span>
                             <span><i class="fas fa-user"></i> {{ product.seller.get_full_name|default:product.seller.username }}</span>
@@ -33,7 +41,7 @@
                 </div>
                 <div class="buy-confirm-notice">
                     <i class="fas fa-info-circle"></i>
-                    <p>By confirming, you agree to meet the seller at <strong>{{ product.location_display }}</strong> to complete the transaction. The listed price of <strong>{{ product.price|npr }}</strong> will be locked in for this order.</p>
+                    <p>By confirming, you agree to meet the seller at <strong>{{ product.location_display }}</strong> to complete the transaction. The listed price of <strong>{{ product.current_price|npr }}</strong> will be locked in for this order.</p>
                 </div>
                 <form method="post" class="buy-confirm-form">
                     {% csrf_token %}
@@ -63,7 +71,7 @@
                             <i class="fas fa-arrow-left"></i> Go Back
                         </a>
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-check-circle"></i> Confirm Purchase - {{ product.price|npr }}
+                            <i class="fas fa-check-circle"></i> Confirm Purchase - {{ product.current_price|npr }}
                         </button>
                     </div>
                 </form>

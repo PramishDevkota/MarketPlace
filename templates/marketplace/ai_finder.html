@@ -107,7 +107,7 @@
                     <h3 class="advisor-card-title">
                         <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
                     </h3>
-                    <p class="advisor-card-price">{{ item.product.price|npr }}</p>
+                    <p class="advisor-card-price">{{ item.product.current_price|npr }}</p>
 
                     {% if item.ai_reasoning %}
                     <div class="advisor-card-reasoning">

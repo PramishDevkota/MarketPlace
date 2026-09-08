@@ -57,6 +57,27 @@
                                     <small class="form-help">Size, e.g., S, M, L, XL (for clothing).</small>
                                 </div>
                             </div>
+                            <div class="form-group sale-field-group">
+                                <label class="sale-toggle-label">
+                                    <span class="sale-toggle-check">
+                                        {{ form.is_on_sale }}
+                                    </span>
+                                    <span class="sale-toggle-text">
+                                        <i class="fas fa-bolt"></i> Put this product on sale
+                                    </span>
+                                </label>
+                                {% if form.is_on_sale.errors %}
+                                <div class="form-error">{{ form.is_on_sale.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group sale-price-group" id="sale-price-group"{% if not form.is_on_sale.value and not form.instance.on_sale %} style="display: none;"{% endif %}>
+                                <label for="id_sale_price"><span class="currency-badge">Rs.</span> Sale Price</label>
+                                {{ form.sale_price }}
+                                {% if form.sale_price.errors %}
+                                <div class="form-error">{{ form.sale_price.errors.0 }}</div>
+                                {% endif %}
+                                <small class="form-help">{{ form.sale_price.help_text }}</small>
+                            </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="id_programme"><i class="fas fa-graduation-cap"></i> Programme</label>
@@ -159,7 +180,21 @@
     }
 
     if (categorySelect) { categorySelect.addEventListener('change', updateSizeField); }
-    document.addEventListener('DOMContentLoaded', updateSizeField);
+
+    var saleToggle = document.getElementById('id_is_on_sale');
+    var salePriceGroup = document.getElementById('sale-price-group');
+
+    function updateSaleField() {
+        if (!saleToggle || !salePriceGroup) { return; }
+        salePriceGroup.style.display = saleToggle.checked ? 'block' : 'none';
+    }
+
+    if (saleToggle) { saleToggle.addEventListener('change', updateSaleField); }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateSizeField();
+        updateSaleField();
+    });
 })();
 </script>
 {% endblock %}

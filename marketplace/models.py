@@ -67,6 +67,18 @@ class Product(models.Model):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
     stock = models.PositiveIntegerField(default=1)
     is_available = models.BooleanField(default=True)
+    is_on_sale = models.BooleanField(
+        default=False,
+        help_text='Mark this product as part of the CRAZY SALES flash sale.',
+    )
+    sale_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0)],
+        help_text='Discounted price shown while the product is on sale.',
+    )
     admin_notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,7 +89,7 @@ class Product(models.Model):
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
         indexes = [
-            models.Index(fields=['status', 'is_available']),
+            models.Index(fields=['status', 'is_available', 'is_on_sale']),
             models.Index(fields=['created_at']),
             models.Index(fields=['category', 'status']),
         ]
@@ -88,9 +100,34 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse('marketplace:product_detail', kwargs={'pk': self.pk})
 
+    def save(self, *args, **kwargs):
+        if not self.is_on_sale:
+            self.sale_price = None
+        super().save(*args, **kwargs)
+
     @property
     def is_sold_out(self):
         return self.stock <= 0
+
+    @property
+    def on_sale(self):
+        return (
+            self.is_on_sale
+            and self.sale_price is not None
+            and self.sale_price > 0
+            and self.sale_price < self.price
+        )
+
+    @property
+    def current_price(self):
+        return self.sale_price if self.on_sale else self.price
+
+    @property
+    def discount_percent(self):
+        if not self.on_sale:
+            return 0
+        discount = (float(self.price) - float(self.sale_price)) / float(self.price) * 100
+        return int(round(discount))
 
     def average_rating(self):
         reviews = self.reviews.all()
@@ -173,7 +210,7 @@ class CartItem(models.Model):
 
     @property
     def subtotal(self):
-        return self.product.price * self.quantity
+        return self.product.current_price * self.quantity
 
     def __str__(self):
         return f"{self.quantity}x {self.product.name}"

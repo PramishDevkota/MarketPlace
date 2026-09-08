@@ -23,9 +23,17 @@ def home_view(request):
     ).filter(
         Q(is_available=True) | Q(stock=0),
     ).select_related('seller', 'category')[:8]
+    sale_products = Product.objects.filter(
+        status='APPROVED',
+        is_available=True,
+        is_on_sale=True,
+        sale_price__isnull=False,
+        sale_price__gt=0,
+    ).select_related('seller', 'category').order_by('-created_at')[:20]
     categories = Category.objects.filter(is_active=True)[:8]
     context = {
         'products': approved_products,
+        'sale_products': sale_products,
         'categories': categories,
     }
     return render(request, 'marketplace/home.html', context)
@@ -267,7 +275,7 @@ def buy_now_view(request, pk):
             buyer=request.user,
             seller=product.seller,
             product=product,
-            price_at_purchase=product.price,
+            price_at_purchase=product.current_price,
             quantity=quantity,
             meetup_location=request.POST.get('meetup_location', 'BLOCK_A_HALLWAY'),
             meetup_time_notes=request.POST.get('meetup_time_notes', ''),
@@ -334,7 +342,7 @@ def add_to_cart(request, product_id):
         recommended_products.append({
             'id': rec_product.pk,
             'name': rec_product.name,
-            'price': str(rec_product.price),
+            'price': str(rec_product.current_price),
             'image': rec_product.image.url if rec_product.image else None,
             'product_url': rec_product.get_absolute_url(),
         })
@@ -346,7 +354,7 @@ def add_to_cart(request, product_id):
         'added_item': {
             'id': product.pk,
             'name': product.name,
-            'price': str(product.price),
+            'price': str(product.current_price),
             'quantity': item.quantity,
             'subtotal': str(item.subtotal),
         },
@@ -548,7 +556,11 @@ def buyer_dashboard_view(request):
 
 def marketplace_overview(request):
     """Public marketplace dashboard with marketplace-wide sales insights."""
-    from django.db.models import Sum, Count
+    from datetime import timedelta
+
+    from django.db.models import Count, Sum
+    from django.db.models.functions import TruncDate
+    from django.utils import timezone
 
     active_orders = Order.objects.exclude(status='CANCELLED')
 
@@ -572,11 +584,39 @@ def marketplace_overview(request):
         .order_by('-created_at')[:10]
     )
 
+    today = timezone.localdate()
+    start_date = today - timedelta(days=13)
+    daily_rows = (
+        active_orders
+        .annotate(day=TruncDate('created_at'))
+        .filter(day__gte=start_date)
+        .values('day')
+        .annotate(items_sold=Count('id'), gmv=Sum('price_at_purchase'))
+        .order_by('day')
+    )
+    rows_by_day = {row['day']: row for row in daily_rows}
+
+    daily_sales = []
+    for offset in range(14):
+        day = start_date + timedelta(days=offset)
+        row = rows_by_day.get(day, {})
+        daily_sales.append({
+            'label': day.strftime('%b %d'),
+            'items_sold': row.get('items_sold') or 0,
+            'gmv': row.get('gmv') or 0,
+        })
+
+    max_daily_gmv = max((day['gmv'] for day in daily_sales), default=0)
+    for day in daily_sales:
+        day['gmv_pct'] = round((day['gmv'] / max_daily_gmv) * 100, 1) if max_daily_gmv else 0
+
     context = {
         'total_items_sold': total_items_sold,
         'total_gmv': total_gmv,
         'top_categories': top_categories,
         'recent_orders': recent_orders,
+        'daily_sales': daily_sales,
+        'max_daily_gmv': max_daily_gmv,
     }
     return render(request, 'marketplace/overview.html', context)
 

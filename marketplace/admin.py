@@ -19,11 +19,25 @@ class ProductImageInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline]
-    list_display = ['name', 'seller', 'category', 'price', 'size', 'color', 'location', 'programme', 'module_code', 'status', 'is_available', 'created_at']
-    list_filter = ['status', 'is_available', 'category', 'location', 'programme', 'created_at']
+    list_display = ['name', 'seller', 'category', 'price', 'sale_price', 'is_on_sale', 'size', 'color', 'location', 'programme', 'module_code', 'status', 'is_available', 'created_at']
+    list_filter = ['status', 'is_available', 'is_on_sale', 'category', 'location', 'programme', 'created_at']
     search_fields = ['name', 'description', 'seller__username', 'module_code', 'programme', 'size', 'color']
     ordering = ['-created_at']
     readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'seller', 'category', 'image'),
+        }),
+        ('Pricing', {
+            'fields': ('price', 'is_on_sale', 'sale_price'),
+        }),
+        ('Details', {
+            'fields': ('size', 'color', 'location', 'programme', 'module_code', 'stock', 'is_available', 'status', 'admin_notes'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+        }),
+    )
 
     def has_add_permission(self, request):
         return False

@@ -96,7 +96,15 @@
                                 </div>
                             </td>
                             <td>{{ product.category.name|default:"-" }}</td>
-                            <td><strong>{{ product.price|npr }}</strong></td>
+                            <td>
+                                {% if product.on_sale %}
+                                <strong>{{ product.current_price|npr }}</strong>
+                                <span class="badge badge-danger" style="margin-left: 6px;">SALE -{{ product.discount_percent }}%</span>
+                                <div class="sale-dash-original"><s>{{ product.price|npr }}</s></div>
+                                {% else %}
+                                <strong>{{ product.current_price|npr }}</strong>
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="badge {% if product.is_sold_out %}badge-danger{% else %}badge-success{% endif %}">
                                     {{ product.stock }}

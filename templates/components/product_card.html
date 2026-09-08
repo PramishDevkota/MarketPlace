@@ -8,13 +8,23 @@
             <img src="/static/images/placeholder.png" alt="No image available">
             {% endif %}
             <span class="product-card-category">{{ product.category.name|default:"Uncategorized" }}</span>
+            {% if product.on_sale and not product.is_sold_out %}
+            <span class="product-card-sale">-{{ product.discount_percent }}%</span>
+            {% endif %}
             {% if product.is_sold_out %}
             <span class="product-card-soldout">SOLD OUT</span>
             {% endif %}
         </div>
         <div class="product-card-body">
             <h3 class="product-card-title">{{ product.name }}</h3>
+            {% if product.on_sale %}
+            <p class="product-card-price on-sale">
+                <span class="product-card-original-price">{{ product.price|npr }}</span>
+                <span class="product-card-sale-price">{{ product.current_price|npr }}</span>
+            </p>
+            {% else %}
             <p class="product-card-price">{{ product.price|npr }}</p>
+            {% endif %}
             <div class="product-card-tags">
                 <span class="tag tag-programme"><i class="fas fa-graduation-cap"></i> {{ product.programme_display }}</span>
                 {% if product.module_code %}

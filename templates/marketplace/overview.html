@@ -30,6 +30,30 @@
             </div>
         </div>
 
+        {% if daily_sales %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-bar"></i> Sales (GMV) &mdash; Last 14 Days</h2>
+            </div>
+            <div class="bar-chart">
+                {% for day in daily_sales %}
+                <div class="bar-col" title="{{ day.label }} &mdash; {{ day.gmv|npr }} &middot; {{ day.items_sold }} item{{ day.items_sold|pluralize }}">
+                    <span class="bar-value">{{ day.items_sold }}</span>
+                    <div class="bar-wrap">
+                        <span class="bar{% if day.gmv == 0 %} bar-zero{% endif %}"
+                              style="height: {{ day.gmv_pct }}%"></span>
+                    </div>
+                    <span class="bar-label">{{ day.label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="chart-hint">
+                <i class="fas fa-info-circle"></i>
+                Peak day: <strong>{{ max_daily_gmv|npr }}</strong> GMV (hover a bar for details).
+            </p>
+        </div>
+        {% endif %}
+
         {% if top_categories %}
         <div class="dashboard-section">
             <div class="section-header">

@@ -1,0 +1,37 @@
+{% load static humanize currency_tags %}
+<div class="sale-card">
+    <a href="{{ product.get_absolute_url }}" class="sale-card-link">
+        <div class="sale-card-image">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+            {% else %}
+            <img src="{% static 'images/placeholder.png' %}" alt="No image available">
+            {% endif %}
+            <span class="sale-badge">SALE</span>
+            <span class="sale-discount">-{{ product.discount_percent }}%</span>
+        </div>
+        <div class="sale-card-body">
+            <h3 class="sale-card-title">{{ product.name }}</h3>
+            <div class="sale-card-prices">
+                <span class="sale-card-original">{{ product.price|npr }}</span>
+                <span class="sale-card-price">{{ product.current_price|npr }}</span>
+            </div>
+            <div class="sale-card-seller">
+                <div class="sale-card-avatar">
+                    {% if product.seller.profile_image %}
+                    <img src="{{ product.seller.profile_image.url }}" alt="{{ product.seller.get_full_name|default:product.seller.username }}">
+                    {% else %}
+                    <span>{{ product.seller.get_full_name|default:product.seller.username|slice:":1"|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="sale-card-seller-info">
+                    <span class="sale-card-seller-name">{{ product.seller.get_full_name|default:product.seller.username }}</span>
+                    <span class="sale-card-seller-programme">{{ product.programme_display }}</span>
+                </div>
+            </div>
+            <span class="sale-card-btn">
+                Grab Deal <i class="fas fa-arrow-right"></i>
+            </span>
+        </div>
+    </a>
+</div>

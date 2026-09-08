@@ -60,7 +60,13 @@
                 </div>
 
                 <div class="product-detail-price">
-                    {{ product.price|npr }}
+                    {% if product.on_sale %}
+                    <span class="product-detail-original">{{ product.price|npr }}</span>
+                    <span class="product-detail-sale">{{ product.current_price|npr }}</span>
+                    <span class="sale-discount-static">-{{ product.discount_percent }}%</span>
+                    {% else %}
+                    {{ product.current_price|npr }}
+                    {% endif %}
                     {% if product.stock == 0 %}
                     <span class="badge badge-danger">Out of Stock</span>
                     {% elif product.is_sold_out %}

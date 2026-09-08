@@ -28,7 +28,15 @@
                     <h3>
                         <a href="{{ item.product.get_absolute_url }}">{{ item.product.name }}</a>
                     </h3>
-                    <p class="order-card-price">{{ item.product.price|npr }}</p>
+                    {% if item.product.on_sale %}
+                    <p class="order-card-price">
+                        <span class="product-card-original-price">{{ item.product.price|npr }}</span>
+                        <span class="product-card-sale-price">{{ item.product.current_price|npr }}</span>
+                        <span class="product-card-sale-tag">-{{ item.product.discount_percent }}%</span>
+                    </p>
+                    {% else %}
+                    <p class="order-card-price">{{ item.product.current_price|npr }}</p>
+                    {% endif %}
                     <p class="order-card-meta">
                         <span><i class="fas fa-map-marker-alt"></i> {{ item.product.location_display }}</span>
                         <span><i class="fas fa-user"></i> {{ item.product.seller.get_full_name|default:item.product.seller.username }}</span>
