@@ -13,6 +13,7 @@ Settings (optional, applied if set):
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import DatabaseError, OperationalError
 from django.http import HttpResponse
 
 
@@ -30,15 +31,16 @@ class RateLimitMiddleware:
 
         ip = self._get_client_ip(request)
         key = f'ratelimit:{ip}:{path}'
-        count = cache.get(key, 0)
-
-        if count >= self.max_requests:
-            response = HttpResponse('Too Many Requests', status=429)
-            response['Retry-After'] = str(self.window)
-            return response
-
-        cache.add(key, 0, timeout=self.window)
-        cache.incr(key)
+        try:
+            count = cache.get(key, 0)
+            if count >= self.max_requests:
+                response = HttpResponse('Too Many Requests', status=429)
+                response['Retry-After'] = str(self.window)
+                return response
+            cache.add(key, 0, timeout=self.window)
+            cache.incr(key)
+        except (DatabaseError, OperationalError, TypeError):
+            pass
         return self.get_response(request)
 
     @staticmethod
