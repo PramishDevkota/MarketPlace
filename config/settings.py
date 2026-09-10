@@ -37,6 +37,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise must remain second
+    'common.middleware.RateLimitMiddleware',  # Global IP-based rate limiting
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -44,6 +45,18 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Rate limiting (see common/middleware.py)
+# Use the database cache so limits are shared across serverless instances.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'rate_limit_cache',
+    }
+}
+RATE_LIMIT_MAX_REQUESTS = config('RATE_LIMIT_MAX_REQUESTS', default=300, cast=int)
+RATE_LIMIT_WINDOW_SECONDS = config('RATE_LIMIT_WINDOW_SECONDS', default=60, cast=int)
+RATE_LIMIT_EXEMPT_PATHS = ['/static/', '/media/', '/admin/jsi18n/', '/favicon.ico']
 
 ROOT_URLCONF = 'config.urls'
 

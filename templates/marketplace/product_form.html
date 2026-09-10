@@ -101,7 +101,7 @@
                                 {% if form.image.errors %}
                                 <div class="form-error">{{ form.image.errors.0 }}</div>
                                 {% endif %}
-                                <small class="form-help">Upload a clear image of your product. Max 5MB.</small>
+                                <small class="form-help">Upload a clear image of your product. Photos are automatically compressed.</small>
                             </div>
                             <div class="form-group">
                                 <label><i class="fas fa-images"></i> Additional Gallery Images</label>
@@ -158,6 +158,57 @@
 
 <script>
 (function () {
+    var form = document.querySelector('.form-content');
+
+    function compressImage(file) {
+        return new Promise(function (resolve) {
+            if (!file || !file.type || file.type.indexOf('image/') !== 0) { resolve(file); return; }
+            if (file.size <= 500 * 1024) { resolve(file); return; }
+            var img = new Image();
+            img.onload = function () {
+                var MAX = 1600;
+                var scale = Math.min(1, MAX / Math.max(img.width, img.height));
+                var w = Math.round(img.width * scale);
+                var h = Math.round(img.height * scale);
+                var canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                canvas.toBlob(function (blob) {
+                    if (blob && blob.size < file.size) {
+                        resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }));
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', 0.82);
+            };
+            img.onerror = function () { resolve(file); };
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    form.addEventListener('submit', function (e) {
+        var inputs = form.querySelectorAll('input[type="file"]');
+        var filesToCompress = [];
+        inputs.forEach(function (input) {
+            if (input.files.length) { filesToCompress.push({ input: input, file: input.files[0] }); }
+        });
+        if (!filesToCompress.length) { return; }
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Compressing images...';
+        Promise.all(filesToCompress.map(function (entry) { return compressImage(entry.file); }))
+            .then(function (compressed) {
+                compressed.forEach(function (file, i) {
+                    var dt = new DataTransfer();
+                    dt.items.add(file);
+                    filesToCompress[i].input.files = dt.files;
+                });
+                form.submit();
+            });
+    });
+
     var categorySelect = document.getElementById('id_category');
     var sizeGroup = document.getElementById('size-field-group');
 
