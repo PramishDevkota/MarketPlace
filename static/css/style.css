@@ -575,6 +575,12 @@ textarea.form-control {
 
 .nav-cta {
     margin-left: 8px;
+    padding: 8px 16px;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
 }
 
 /* Navbar Dropdown */
@@ -855,6 +861,8 @@ textarea.form-control {
     border: 1px solid var(--border);
     overflow: hidden;
     transition: var(--transition);
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -866,7 +874,9 @@ textarea.form-control {
 .product-card-link {
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .product-card-image {
@@ -930,6 +940,9 @@ textarea.form-control {
 
 .product-card-body {
     padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .product-card-title {
@@ -983,6 +996,7 @@ textarea.form-control {
     color: var(--text-light);
     padding-top: 10px;
     border-top: 1px solid var(--border-light);
+    margin-top: auto;
 }
 
 /* ============================================
@@ -4737,13 +4751,14 @@ body.auth-body {
 .sale-card {
     flex: 0 0 100%;
     scroll-snap-align: start;
-    width: 100%;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
     transition: var(--transition);
+    display: flex;
+    flex-direction: column;
 }
 
 .sale-card:hover {
@@ -4752,7 +4767,9 @@ body.auth-body {
 }
 
 .sale-card-link {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     color: inherit;
     text-decoration: none;
 }
@@ -4805,6 +4822,9 @@ body.auth-body {
 
 .sale-card-body {
     padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .sale-card-title {
@@ -4903,6 +4923,7 @@ body.auth-body {
     font-size: 0.88rem;
     font-weight: 700;
     transition: var(--transition);
+    margin-top: auto;
 }
 
 .sale-card:hover .sale-card-btn {
